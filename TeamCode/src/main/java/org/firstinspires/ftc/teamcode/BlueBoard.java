@@ -112,11 +112,11 @@ public class BlueBoard extends LinearOpMode {
 
         CurrentCoords = robot.driveToTile(CurrentCoords, new double[]{CurrentCoords[0], -4.8, 0}, 0.9);
 
-        CurrentCoords = robot.driveToTile(CurrentCoords, new double[]{-1.2, -4.8, 0}, 0.9);
+        CurrentCoords = robot.driveToTile(CurrentCoords, new double[]{-1.1, -4.8, 0}, 0.9);
 
         CurrentCoords = robot.turnDegrees(CurrentCoords, 2);
 
-        CurrentCoords = robot.driveToTile(CurrentCoords, new double[]{-1.3, -5.6, 0}, 0.9);
+        CurrentCoords = robot.driveToTile(CurrentCoords, new double[]{-1.3, -5.25, 0}, 0.9);
 
         sleep(500);
 

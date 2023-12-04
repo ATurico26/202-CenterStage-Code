@@ -69,7 +69,7 @@ public class BasicTeleOp extends LinearOpMode {
             }
 
             // Auto rotate to face virtual4Bar towards the board
-            if (gamepad1.right_stick_button || gamepad2.left_stick_button) {
+            if (gamepad1.right_stick_button) {
                 if(RotationChange == 0.5) {
                     if (RelativeRotation > -0.35 && RelativeRotation < 0.5) TurnControl = -1;
                     else if (RelativeRotation <= -0.35 && RelativeRotation > -0.45) TurnControl = -0.2;
@@ -102,18 +102,18 @@ public class BasicTeleOp extends LinearOpMode {
             if(gamepad1.dpad_right && !AbsoluteSetting) {
                 //CurrentCoords[0] = 0.38;
                 RotationChange = 0.5;
-                robot.resetDriveEncoders();
+                //robot.resetDriveEncoders();
                 AbsoluteSetting = true;
             } else if(gamepad1.dpad_left && !AbsoluteSetting) {
                 //CurrentCoords[0] = 5.62;
                 RotationChange = -0.5;
-                robot.resetDriveEncoders();
+                //robot.resetDriveEncoders();
                 AbsoluteSetting = true;
             } else if(gamepad1.dpad_up && !AbsoluteSetting) {
                 //CurrentCoords[2] = 0;
 
                 RotationChange = 0;
-                robot.resetDriveEncoders();
+                //robot.resetDriveEncoders();
                 AbsoluteSetting = true;
             } if(gamepad1.dpad_down) {
                 //CurrentCoords[1] = 0.38;
@@ -131,19 +131,19 @@ public class BasicTeleOp extends LinearOpMode {
                 else if (gamepad2.right_stick_y >= 0) robot.VirtualFourBar.setPower(1 * Math.abs(Math.pow(gamepad2.right_stick_y, 3)));
 
                 Virtual4BarHold = robot.VirtualFourBar.getCurrentPosition();
-                if (robot.VirtualFourBar.getCurrentPosition() < -250 && robot.VirtualFourBar.getCurrentPosition() > -1050) robot.Claw.setPosition(0 + ClawOffset);
+                //if (robot.VirtualFourBar.getCurrentPosition() < -250 && robot.VirtualFourBar.getCurrentPosition() > -1050) robot.Claw.setPosition(0 + ClawOffset);
             } else if(gamepad2.dpad_up) {
                 Virtual4BarHold = -1450;
-                if (robot.VirtualFourBar.getCurrentPosition() > -1150) robot.Claw.setPosition(0 + ClawOffset);
+                //if (robot.VirtualFourBar.getCurrentPosition() > -1150) robot.Claw.setPosition(0 + ClawOffset);
             } else if(gamepad2.dpad_left) {
                 Virtual4BarHold = -1150;
-                if (robot.VirtualFourBar.getCurrentPosition() > -1150) robot.Claw.setPosition(0 + ClawOffset);
+                //if (robot.VirtualFourBar.getCurrentPosition() > -1150) robot.Claw.setPosition(0 + ClawOffset);
             } else if(gamepad2.dpad_down) {
                 Virtual4BarHold = -25;
-                if (robot.VirtualFourBar.getCurrentPosition() < -250) {
-                    robot.Claw.setPosition(0 + ClawOffset);
-                    ClawMovingToStorage = true;
-                }
+                //if (robot.VirtualFourBar.getCurrentPosition() < -250) {
+                    //robot.Claw.setPosition(0 + ClawOffset);
+                    //ClawMovingToStorage = true;
+                //}
             }
             // If using preset to move virtual4bar back to storage, open claw
             //if (ClawMovingToStorage && robot.VirtualFourBar.getCurrentPosition() > -200) {
@@ -164,7 +164,7 @@ public class BasicTeleOp extends LinearOpMode {
 
 
             // Intake
-            if (gamepad2.right_trigger > 0.05 && robot.VirtualFourBar.getCurrentPosition() > -400) robot.Intake.setPower(0.75 * gamepad2.right_trigger);
+            if (gamepad2.right_trigger > 0.05) robot.Intake.setPower(0.75 * gamepad2.right_trigger);
             else if(gamepad2.left_trigger > 0.05) robot.Intake.setPower(-1 * gamepad2.left_trigger);
             else if(gamepad1.right_trigger > 0.05) robot.Intake.setPower(0.75 * gamepad1.right_trigger);
             else robot.Intake.setPower(0);
@@ -181,7 +181,7 @@ public class BasicTeleOp extends LinearOpMode {
 
             // Claw
             if(gamepad2.y) robot.Claw.setPosition(0 + ClawOffset);
-            else if (gamepad2.x) robot.Claw.setPosition(0.4 + ClawOffset);
+            else if (gamepad2.x) robot.Claw.setPosition(0.35 + ClawOffset);
             //  && !(robot.VirtualFourBar.getCurrentPosition() < -250 && robot.VirtualFourBar.getCurrentPosition() > -1150)
 
 
@@ -199,6 +199,9 @@ public class BasicTeleOp extends LinearOpMode {
             telemetry.addData("VFB:", robot.VirtualFourBar.getCurrentPosition());
             telemetry.addData("Distance left", robot.LeftSensor.getDistance(DistanceUnit.INCH));
             telemetry.addData("Distance right", robot.RightSensor.getDistance(DistanceUnit.INCH));
+            if (robot.LeftSensor.getDistance(DistanceUnit.INCH) < 35) telemetry.addLine("Object at middle");
+            else if (robot.RightSensor.getDistance(DistanceUnit.INCH) < 35 && robot.RightSensor.getDistance(DistanceUnit.INCH) > 19.5) telemetry.addLine("Object at right");
+            else telemetry.addLine("Object at left");
             telemetry.update();
         }
     }

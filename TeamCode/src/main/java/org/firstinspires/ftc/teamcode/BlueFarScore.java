@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
-@Autonomous(name = "BlueFarScore", group = "Iterative Opmode")
+@Autonomous(name = "WRONGBlueFarScore", group = "Iterative Opmode")
 public class BlueFarScore extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
         RobotHardware robot = new RobotHardware(hardwareMap, telemetry);
