@@ -11,11 +11,16 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
+import com.qualcomm.hardware.dfrobot.HuskyLens;
+import com.acmerobotics.roadrunner.geometry.Pose2d;
 
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.teamcode.drive.StandardTrackingWheelLocalizer;
 
+import java.util.ArrayList;
+import java.util.List;
 
 
 @TeleOp(name="TeleOp", group="Iterative Opmode")
@@ -27,11 +32,16 @@ public class BasicTeleOp extends LinearOpMode {
         Gamepad driver = gamepad1, operator = gamepad2;
 
 
+        // HuskyLens
+        robot.Camera.selectAlgorithm(HuskyLens.Algorithm.TAG_RECOGNITION);
+
+
         ElapsedTime mRuntime = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
         double LastTime = mRuntime.time();
 
         double ClawOffset = 0;
-        int Virtual4BarHold = robot.VirtualFourBar.getCurrentPosition();
+        int Virtual4BarHold = robot.VFBLeft.getCurrentPosition();
+        double VFBPower = 0;
         double RobotRotation = 0;
         double RelativeRotation = 0; // Rotation relative to starting rotation
         double AbsoluteX = 0;
@@ -40,7 +50,16 @@ public class BasicTeleOp extends LinearOpMode {
         double TurnControl = 0;
         double RotationChange = 0;
         boolean ClawMovingToStorage = false;
-        double[] CurrentCoords = robot.updateCoords(new double[]{3.5, 0.38, 0, -robot.LF.getCurrentPosition(), robot.RF.getCurrentPosition(), robot.LB.getCurrentPosition()});
+
+
+        // RoadRunner
+        List<Integer> lastTrackingEncPositions = new ArrayList<>();
+        List<Integer> lastTrackingEncVels = new ArrayList<>();
+        StandardTrackingWheelLocalizer myLocalizer = new StandardTrackingWheelLocalizer(hardwareMap, lastTrackingEncPositions, lastTrackingEncVels);
+
+        //Starting Position
+        myLocalizer.setPoseEstimate(new Pose2d(0, 0, Math.toRadians(90)));
+
 
         waitForStart();
 
@@ -48,7 +67,10 @@ public class BasicTeleOp extends LinearOpMode {
 
         while (opModeIsActive() && !isStopRequested()) {
 
-            CurrentCoords = robot.updateCoords(CurrentCoords);
+            // Get Current Pose from Road Runner
+            myLocalizer.update();
+            Pose2d myPose = myLocalizer.getPoseEstimate();
+
 
             //Absolute Driving
             RobotRotation = -1 * (360.0 / 190) * ((robot.LF.getCurrentPosition() + robot.RF.getCurrentPosition()) * RobotHardware.encoderBad) / (2 * RobotHardware.encoderTicksPer360) + RotationChange;
@@ -123,44 +145,12 @@ public class BasicTeleOp extends LinearOpMode {
 
 
             // Virtual Four Bar
-            if (Math.abs(gamepad2.right_stick_y) > 0.05) {
-                robot.VirtualFourBar.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            if (gamepad2.right_stick_y < 0) VFBPower = (-1 * Math.abs(Math.pow(gamepad2.right_stick_y, 3)));
+            else if (gamepad2.right_stick_y >= 0) VFBPower = (1 * Math.abs(Math.pow(gamepad2.right_stick_y, 3)));
+            else VFBPower = 0;
 
-                // prevent moving the arm past breaking point
-                if (gamepad2.right_stick_y < 0) robot.VirtualFourBar.setPower(-1 * Math.abs(Math.pow(gamepad2.right_stick_y, 3)));
-                else if (gamepad2.right_stick_y >= 0) robot.VirtualFourBar.setPower(1 * Math.abs(Math.pow(gamepad2.right_stick_y, 3)));
-
-                Virtual4BarHold = robot.VirtualFourBar.getCurrentPosition();
-                //if (robot.VirtualFourBar.getCurrentPosition() < -250 && robot.VirtualFourBar.getCurrentPosition() > -1050) robot.Claw.setPosition(0 + ClawOffset);
-            } else if(gamepad2.dpad_up) {
-                Virtual4BarHold = -1450;
-                //if (robot.VirtualFourBar.getCurrentPosition() > -1150) robot.Claw.setPosition(0 + ClawOffset);
-            } else if(gamepad2.dpad_left) {
-                Virtual4BarHold = -1150;
-                //if (robot.VirtualFourBar.getCurrentPosition() > -1150) robot.Claw.setPosition(0 + ClawOffset);
-            } else if(gamepad2.dpad_down) {
-                Virtual4BarHold = -25;
-                //if (robot.VirtualFourBar.getCurrentPosition() < -250) {
-                    //robot.Claw.setPosition(0 + ClawOffset);
-                    //ClawMovingToStorage = true;
-                //}
-            }
-            // If using preset to move virtual4bar back to storage, open claw
-            //if (ClawMovingToStorage && robot.VirtualFourBar.getCurrentPosition() > -200) {
-                //robot.Claw.setPosition(0.4 + ClawOffset);
-                //ClawMovingToStorage = false;
-            //}
-            // Hold virtual4bar at current position or move and hold at preset position
-            if (!(Math.abs(gamepad2.right_stick_y) > 0.05)) {
-                robot.VirtualFourBar.setPower(0);
-            }
-
-            //if (!(Math.abs(gamepad2.right_stick_y) > 0.05)) {
-                //if (robot.VirtualFourBar.getCurrentPosition() > -300 && robot.VirtualFourBar.getCurrentPosition() < -1100) robot.VirtualFourBar.setPower(0.3);
-                //else robot.VirtualFourBar.setPower(1);
-                //robot.VirtualFourBar.setTargetPosition(Virtual4BarHold);
-                //robot.VirtualFourBar.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            //}
+            robot.VFBRight.setPower(VFBPower);
+            robot.VFBLeft.setPower(VFBPower);
 
 
             // Intake
@@ -182,26 +172,31 @@ public class BasicTeleOp extends LinearOpMode {
             // Claw
             if(gamepad2.y) robot.Claw.setPosition(0 + ClawOffset);
             else if (gamepad2.x) robot.Claw.setPosition(0.35 + ClawOffset);
-            //  && !(robot.VirtualFourBar.getCurrentPosition() < -250 && robot.VirtualFourBar.getCurrentPosition() > -1150)
-
 
 
             telemetry.addData("FPS:", Math.round((1 / (mRuntime.time() - LastTime)) * 1000));
             LastTime = mRuntime.time();
-            telemetry.addData("X:", CurrentCoords[0]);
-            telemetry.addData("Y:", CurrentCoords[1]);
-            telemetry.addData("Z:", CurrentCoords[2]);
-            telemetry.addData("Left:", CurrentCoords[3]);
-            telemetry.addData("Right:", CurrentCoords[4]);
-            telemetry.addData("Back:", CurrentCoords[5]);
-            telemetry.addData("Relative Rotation", (RelativeRotation * 180));
-            telemetry.addData("Claw Pos", robot.Claw.getPosition());
-            telemetry.addData("VFB:", robot.VirtualFourBar.getCurrentPosition());
-            telemetry.addData("Distance left", robot.LeftSensor.getDistance(DistanceUnit.INCH));
-            telemetry.addData("Distance right", robot.RightSensor.getDistance(DistanceUnit.INCH));
+            telemetry.addData("X:", myPose.getX());
+            telemetry.addData("Y:", myPose.getY());
+            telemetry.addData("heading:", myPose.getHeading());
+            telemetry.addData("Relative Rotation:", (RelativeRotation * 180));
+            telemetry.addData("Claw:", robot.Claw.getPosition());
+            telemetry.addData("VFB:", robot.VFBLeft.getCurrentPosition());
+
+            // Distance Sensor Telemetry
+            telemetry.addData("Distance left:", robot.LeftSensor.getDistance(DistanceUnit.INCH));
+            telemetry.addData("Distance right:", robot.RightSensor.getDistance(DistanceUnit.INCH));
             if (robot.LeftSensor.getDistance(DistanceUnit.INCH) < 35) telemetry.addLine("Object at middle");
             else if (robot.RightSensor.getDistance(DistanceUnit.INCH) < 35 && robot.RightSensor.getDistance(DistanceUnit.INCH) > 19.5) telemetry.addLine("Object at right");
             else telemetry.addLine("Object at left");
+
+            // HuskyLens Telemetry
+            HuskyLens.Block[] block = robot.Camera.blocks();
+            telemetry.addData("HuskyLens block count:", block.length);
+            for (int i = 0; i < block.length; i++) {
+                telemetry.addLine("ID:" + (block[i].id) + " X/Y:" + (block[i].x) + ", " + (block[i].y) + " h:" + (block[i].height) + " w:" + (block[i].width) + " origin:" + (block[i].left) + ", " + (block[i].top));
+            }
+
             telemetry.update();
         }
     }
@@ -220,13 +215,25 @@ class RobotHardware {
     public final DcMotor RF, RB, LF, LB;
 
 
-    public final DcMotor Intake, VirtualFourBar;
+    public final DcMotor Intake, VFBRight, VFBLeft;
 
 
     public final Servo Claw, DroneLauncher;
 
 
     public final DistanceSensor RightSensor, LeftSensor;
+
+
+    public final HuskyLens Camera;
+
+
+    // PID for VFB setup
+    double IntegralSum = 0;
+    double Kp = 0;
+    double Ki = 0;
+    double Kd = 0;
+    private double lastError = 0;
+    ElapsedTime PIDtimer = new ElapsedTime();
 
 
     static final double C1 = 3.4470252727, C2 = 2.7227136331, mmToTile = 0.00168248199744, EncoderTickToMM = 0.024,
@@ -257,9 +264,15 @@ class RobotHardware {
         LF = hardwareMap.get(DcMotor.class, "LF"); // Left Encoder
         LB = hardwareMap.get(DcMotor.class, "LB"); // Back Encoder
         Intake = hardwareMap.get(DcMotor.class, "IN");
-        VirtualFourBar = hardwareMap.get(DcMotor.class, "VFB");
+        VFBRight = hardwareMap.get(DcMotor.class, "VFBRight");
+        VFBLeft = hardwareMap.get(DcMotor.class, "VFBLeft");
         DroneLauncher = hardwareMap.get(Servo.class, "Launcher");
         Claw = hardwareMap.get(Servo.class, "Claw");
+
+
+        Camera = hardwareMap.get(HuskyLens.class, "HuskyLens");
+        // HuskyLens
+        telemetry.addData("HuskyLens knock:", Camera.knock());
 
 
         LeftSensor = hardwareMap.get(DistanceSensor.class, "LeftSensor");
@@ -270,7 +283,8 @@ class RobotHardware {
         //LF.setDirection(DcMotor.Direction.REVERSE);
         //LB.setDirection(DcMotor.Direction.REVERSE);
         Intake.setDirection(DcMotor.Direction.REVERSE);
-        VirtualFourBar.setDirection(DcMotor.Direction.REVERSE);
+        VFBRight.setDirection(DcMotor.Direction.REVERSE);
+        VFBLeft.setDirection(DcMotor.Direction.REVERSE);
 
         Claw.setDirection(Servo.Direction.FORWARD);
         DroneLauncher.setDirection(Servo.Direction.FORWARD);
@@ -280,11 +294,8 @@ class RobotHardware {
         LB.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         RF.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         RB.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        VirtualFourBar.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        VFBLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         Intake.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
-
-        VirtualFourBar.setTargetPosition(VirtualFourBar.getCurrentPosition());
 
 
         LF.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -292,11 +303,13 @@ class RobotHardware {
         RF.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         RB.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         Intake.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        VirtualFourBar.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        VFBRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        VFBLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
 
         Intake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-        VirtualFourBar.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        VFBRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        VFBLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
 
         telemetry.addData("Status", "Robot Hardware Initialized");
@@ -320,120 +333,6 @@ class RobotHardware {
     }
 
 
-    public void moveDirection(double direction, double turn, double throttle, double time) {
-        // tile = ~23.4 inches
-
-        double forward = throttle * Math.cos(Math.PI * (direction / 180));
-        double strafe = throttle * -Math.sin(Math.PI * (direction / 180));
-        double max_power = Math.max(1, Math.max(Math.max(
-                forward - strafe + turn, // LF
-                -forward + strafe + turn // LB
-        ), Math.max(
-                forward + strafe - turn, // RF
-                -forward - strafe - turn // RB
-        )));
-        strafe /= max_power;
-        forward /= max_power;
-        turn /= max_power;
-        LF.setPower(0.99 * (forward - strafe + turn)); // numbers equalize motor power differences
-        LB.setPower(1 * (-forward + strafe + turn)); // worst motor
-        RF.setPower(0.9 * (forward + strafe - turn));
-        RB.setPower(0.91 * (-forward - strafe - turn));
-
-        long timeLong = Math.round(time * 1000);
-
-        methodSleep(timeLong);
-
-        LF.setPower(0);
-        LB.setPower(0);
-        RF.setPower(0);
-        RB.setPower(0);
-    }
-
-
-    public double[] updateCoords(double[] CurrentCoords) {
-        double e1 = (-(LF.getCurrentPosition() * encoderBad) - CurrentCoords[3]) * EncoderTickToMM;
-        double e2 = ((RF.getCurrentPosition() * encoderBad) - CurrentCoords[4]) * EncoderTickToMM;
-        double e3 = ((LB.getCurrentPosition() * encoderBad) - CurrentCoords[5]) * EncoderTickToMM;
-        double ChangeInRotation = 0; //((e1 - e2) / (2 * C1));
-
-        return new double[]{((e3 + ChangeInRotation * C2) * Math.cos((Math.PI * CurrentCoords[2]) / 180) + ((e1 + e2) / 2) * Math.sin((Math.PI * CurrentCoords[2]) / 180) + (CurrentCoords[0] / mmToTile)) * mmToTile, // X
-                (-1 * (e3 + ChangeInRotation * C2) * Math.sin((Math.PI * CurrentCoords[2]) / 180) + ((e1 + e2) / 2) * Math.cos((Math.PI * CurrentCoords[2]) / 180) + (CurrentCoords[1] / mmToTile)) * mmToTile, // Y
-                (ChangeInRotation + CurrentCoords[2]), // Rotation Z
-                -LF.getCurrentPosition() * encoderBad, RF.getCurrentPosition() * encoderBad, LB.getCurrentPosition() * encoderBad}; // Last Encoder Positions
-    }
-
-
-    public double[] driveToTile(double[] CurrentCoords, double[] TargetCoords, double Speed) {
-        CurrentCoords = updateCoords(CurrentCoords);
-
-        LF.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        LB.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        RF.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        RB.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-
-        double Distance = Math.sqrt(Math.pow(TargetCoords[0] - CurrentCoords[0], 2) + Math.pow(TargetCoords[1] - CurrentCoords[1], 2));
-        double maxPower = 0, maxSpeed = 0;
-
-        while (Distance > 0.05) { //  || Math.abs(angleDifference(CurrentCoords[2], TargetCoords[2])) > 5
-            CurrentCoords = updateCoords(CurrentCoords);
-            Distance = Math.sqrt(Math.pow(TargetCoords[0] - CurrentCoords[0], 2) + Math.pow(TargetCoords[1] - CurrentCoords[1], 2));
-
-            // Tell motors what to do
-            maxPower = Math.min(1, Math.max(Math.max(Math.abs(TargetCoords[0] - CurrentCoords[0]), Math.abs(TargetCoords[1] - CurrentCoords[1])), 0.0001));
-            maxSpeed = Math.min(1, Math.max((Distance / 0.8), 0.25)); // Distance in Tiles when motors start slowing down, minimum speed
-            driveWithControllers(-1 * ((TargetCoords[0] - CurrentCoords[0]) / maxPower) * maxSpeed,
-                    ((TargetCoords[1] - CurrentCoords[1]) / maxPower) * maxSpeed,
-                    0 * 0.5 * TargetCoords[2], // 0.5 * (angleDifference(TargetCoords[2], CurrentCoords[2]) / 180)
-                    Speed);
-
-            telemetry.addData("Distance", Distance);
-            telemetry.addData("Angle Diff:", angleDifference(CurrentCoords[2], TargetCoords[2]));
-            telemetry.addData("X:", CurrentCoords[0]);
-            telemetry.addData("Y:", CurrentCoords[1]);
-            telemetry.addData("Z:", CurrentCoords[2]);
-            telemetry.addData("X Power", -1 * ((TargetCoords[0] - CurrentCoords[0]) / maxPower) * maxSpeed);
-            telemetry.addData("Y Power", ((TargetCoords[1] - CurrentCoords[1]) / maxPower) * maxSpeed);
-            telemetry.addData("Z Power",0.5 * (angleDifference(TargetCoords[2], CurrentCoords[2]) / 180) * maxSpeed);
-            telemetry.update();
-        }
-
-        LF.setPower(0);
-        LB.setPower(0);
-        RF.setPower(0);
-        RB.setPower(0);
-
-        // Prevents updating encoders while robot is still moving
-        methodSleep(300);
-
-        return updateCoords(CurrentCoords);
-    }
-
-
-    public double[] turnDegrees(double[] CurrentCoords, double degrees) {
-
-        LF.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        LB.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        RF.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        RB.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-
-        double leftStart = LF.getCurrentPosition() * encoderBad;
-        double rightStart = RF.getCurrentPosition() * encoderBad;
-        double targetRotation = Math.abs(encoderTicksPer360 * (degrees / 360));
-
-        while (Math.abs(LF.getCurrentPosition() * encoderBad - leftStart) < targetRotation && Math.abs(RF.getCurrentPosition() * encoderBad - rightStart) < targetRotation) {
-            driveWithControllers(0, 0, Math.signum(degrees), 0.5);
-        }
-
-        driveWithControllers(0, 0, 0, 0);
-
-        methodSleep(300);
-
-        //CurrentCoords[2] = angleDifference(0, degrees + CurrentCoords[2]);
-        return CurrentCoords;
-    }
-
-
     public double angleDifference(double CurrentAngle, double TargetAngle) {
         double result1 = Math.floorMod(Math.round((TargetAngle - CurrentAngle) * 100), 360 * 100) * 0.01;
         double result2 = Math.floorMod(Math.round((TargetAngle - CurrentAngle) * 100), -360 * 100) * 0.01;
@@ -447,6 +346,25 @@ class RobotHardware {
             Thread.sleep(time);
         } catch (InterruptedException e) {
             // Wait the set amount of time before stopping motors
+        }
+    }
+
+
+    public double[] teamObjectPosition() { // (0 = right, 1 = middle, 2 = left), confidence percentage
+        double[] allSensorData = {0, 0, 0}; // Middle, Right, Left
+        int totalCounts = 30;
+
+        for (int i = 0; i < totalCounts; i++) {
+            if (LeftSensor.getDistance(DistanceUnit.INCH) < 35) allSensorData[0]++;
+            else if (RightSensor.getDistance(DistanceUnit.INCH) < 35) allSensorData[1]++;
+            else allSensorData[2]++;
+        }
+        if (allSensorData[0] >= allSensorData[1] && allSensorData[0] >= allSensorData[2]) {
+            return new double[]{0, allSensorData[0] / totalCounts};
+        } else if (allSensorData[1] >= allSensorData[2]) {
+            return new double[]{1, allSensorData[1] / totalCounts};
+        } else {
+            return new double[]{2, allSensorData[2] / totalCounts};
         }
     }
 
@@ -467,6 +385,26 @@ class RobotHardware {
         RF.setPower(throttle * (forward + strafe - turn));
         RB.setPower(throttle * (forward - strafe - turn));
     }
+
+
+    public double PIDControl(double reference, double state) {
+        double error = reference - state;
+        IntegralSum += error * PIDtimer.seconds();
+        double derivative = (error - lastError) / PIDtimer.seconds();
+        lastError = error;
+
+        PIDtimer.reset();
+
+        return (error * Kp) + (derivative * Kd) + (IntegralSum * Ki);
+    }
+
+
+    public void VFBGoToPosition(double position){
+        double power = PIDControl(position, VFBLeft.getCurrentPosition());
+        VFBRight.setPower(power);
+        VFBLeft.setPower(power);
+    }
+
 }
 
 

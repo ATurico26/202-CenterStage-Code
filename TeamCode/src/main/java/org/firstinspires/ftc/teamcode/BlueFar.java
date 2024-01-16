@@ -11,9 +11,6 @@ public class BlueFar extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
         RobotHardware robot = new RobotHardware(hardwareMap, telemetry);
 
-        double[] CurrentCoords = new double[]{3.5, 0.38, 0, robot.LF.getCurrentPosition(), robot.RF.getCurrentPosition(), robot.LB.getCurrentPosition()};
-
-        robot.VirtualFourBar.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         boolean middle = false;
         boolean right = false;
@@ -25,7 +22,6 @@ public class BlueFar extends LinearOpMode {
 
         sleep(500);
 
-        CurrentCoords = robot.turnDegrees(CurrentCoords,-2);
 
 
         // Find where the team object is, move, and place pixel
@@ -36,14 +32,6 @@ public class BlueFar extends LinearOpMode {
 
             sleep(500);
 
-            CurrentCoords = robot.driveToTile(CurrentCoords, new double[]{3.5, 1.66, 0}, 0.75);
-
-            sleep(500);
-
-            CurrentCoords = robot.driveToTile(CurrentCoords, new double[]{3.5, 1.4, 0}, 0.75);
-
-            CurrentCoords[0] = 1.4;
-            CurrentCoords[1] = -3.5;
 
         }
         else if (robot.RightSensor.getDistance(DistanceUnit.INCH) < 35) {
@@ -53,16 +41,6 @@ public class BlueFar extends LinearOpMode {
 
             sleep(500);
 
-            CurrentCoords = robot.driveToTile(CurrentCoords, new double[]{4.55, 1.28, 0}, 0.9);
-
-            CurrentCoords = robot.turnDegrees(CurrentCoords, 6);
-
-            sleep(500);
-
-            CurrentCoords = robot.driveToTile(CurrentCoords, new double[]{4.55, 1.05, 0}, 0.9);
-
-            CurrentCoords[0] = 1.0;
-            CurrentCoords[1] = -4.35;
 
         }
         else {
@@ -71,16 +49,7 @@ public class BlueFar extends LinearOpMode {
 
             sleep(500);
 
-            CurrentCoords = robot.driveToTile(CurrentCoords, new double[]{3.46, 1.5, 0}, 0.75);
 
-            sleep(300);
-
-            //turning towards board puts the pixel in correct place
-
-            CurrentCoords[0] = 1.5;
-            CurrentCoords[1] = -3.46;
-
-            CurrentCoords = robot.turnDegrees(CurrentCoords, -90);
 
         }
 
