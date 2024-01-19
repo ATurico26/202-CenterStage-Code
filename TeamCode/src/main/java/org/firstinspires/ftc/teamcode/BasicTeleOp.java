@@ -6,6 +6,7 @@ import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -18,6 +19,7 @@ import com.acmerobotics.roadrunner.geometry.Pose2d;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.drive.StandardTrackingWheelLocalizer;
+import org.firstinspires.ftc.teamcode.drive.advanced.PoseStorage;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,8 +40,9 @@ public class BasicTeleOp extends LinearOpMode {
 
         ElapsedTime mRuntime = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
         double LastTime = mRuntime.time();
+        double LastTimeInterval = mRuntime.time();
 
-        double ClawOffset = 0;
+        double ClawOffset = 0.15;
         int Virtual4BarHold = robot.VFBLeft.getCurrentPosition();
         double VFBPower = 0;
         double RobotRotation = 0;
@@ -50,6 +53,7 @@ public class BasicTeleOp extends LinearOpMode {
         double TurnControl = 0;
         double RotationChange = 0;
         boolean ClawMovingToStorage = false;
+        double FrameRate = 0;
 
 
         // RoadRunner
@@ -58,7 +62,8 @@ public class BasicTeleOp extends LinearOpMode {
         StandardTrackingWheelLocalizer myLocalizer = new StandardTrackingWheelLocalizer(hardwareMap, lastTrackingEncPositions, lastTrackingEncVels);
 
         //Starting Position
-        myLocalizer.setPoseEstimate(new Pose2d(0, 0, Math.toRadians(90)));
+
+        myLocalizer.setPoseEstimate(PoseStorage.currentPose);
 
 
         waitForStart();
@@ -71,12 +76,14 @@ public class BasicTeleOp extends LinearOpMode {
             myLocalizer.update();
             Pose2d myPose = myLocalizer.getPoseEstimate();
 
+            LastTimeInterval = mRuntime.time();
+
 
             //Absolute Driving
-            RobotRotation = -1 * (360.0 / 190) * ((robot.LF.getCurrentPosition() + robot.RF.getCurrentPosition()) * RobotHardware.encoderBad) / (2 * RobotHardware.encoderTicksPer360) + RotationChange;
-            //RobotRotation = 0.25 * ((1 / TurnRatio) * (robot.LF.getCurrentPosition() + robot.LB.getCurrentPosition()
-                    //- robot.RF.getCurrentPosition() - robot.RB.getCurrentPosition())) + RotationChange;
-            RelativeRotation = 2 * Math.signum(RobotRotation) * ((Math.abs(0.5 * RobotRotation) - Math.floor(Math.abs(0.5 * RobotRotation))) - (Math.floor(Math.abs(RobotRotation)) - 2 * Math.floor(0.5 * Math.abs(RobotRotation))));
+            //RobotRotation = -1 * (360.0 / 190) * ((robot.LF.getCurrentPosition() + robot.RF.getCurrentPosition()) * RobotHardware.encoderBad) / (2 * RobotHardware.encoderTicksPer360) + RotationChange;
+            //RelativeRotation = 2 * Math.signum(RobotRotation) * ((Math.abs(0.5 * RobotRotation) - Math.floor(Math.abs(0.5 * RobotRotation))) - (Math.floor(Math.abs(RobotRotation)) - 2 * Math.floor(0.5 * Math.abs(RobotRotation))));
+
+            RelativeRotation = ((-1 * myPose.getHeading()) / Math.PI) + ((Math.signum(myPose.getHeading() - (3 * Math.PI / 2))) + Math.abs(Math.signum(myPose.getHeading() - (3 * Math.PI / 2)))) + 0.5;
 
             if (Math.abs(gamepad1.right_stick_x) < 0.05 && Math.abs(gamepad1.right_stick_y) < 0.05) {
                 AbsoluteX = Math.cos(Math.PI * RelativeRotation) * (-0.4 * Math.abs(gamepad2.left_stick_x) * gamepad2.left_stick_x) +
@@ -90,7 +97,7 @@ public class BasicTeleOp extends LinearOpMode {
                         Math.cos(Math.PI * RelativeRotation) * (-1 * Math.abs(gamepad1.right_stick_y) * gamepad1.right_stick_y);
             }
 
-            // Auto rotate to face virtual4Bar towards the board
+            // Auto rotate to face VFB towards the board
             if (gamepad1.right_stick_button) {
                 if(RotationChange == 0.5) {
                     if (RelativeRotation > -0.35 && RelativeRotation < 0.5) TurnControl = -1;
@@ -98,12 +105,12 @@ public class BasicTeleOp extends LinearOpMode {
                     else if (RelativeRotation <= -0.45 && RelativeRotation > -0.55) TurnControl = 0; //stop turning
                     else if (RelativeRotation <= -0.55 && RelativeRotation > -0.65) TurnControl = 0.2;
                     else TurnControl = 1;
-                } else if(RotationChange == 0) {
-                    if (RelativeRotation > 0.15 && RelativeRotation < 1) TurnControl = -1;
-                    else if (RelativeRotation <= 0.15 && RelativeRotation > 0.05) TurnControl = -0.2;
-                    else if (RelativeRotation >= -0.05 && RelativeRotation < 0.05) TurnControl = 0; //stop turning
-                    else if (RelativeRotation >= -0.15 && RelativeRotation < -0.05) TurnControl = 0.2;
-                    else TurnControl = 1;
+                //} else if(RotationChange == 0) {
+                    //if (RelativeRotation > 0.15 && RelativeRotation < 1) TurnControl = -1;
+                    //else if (RelativeRotation <= 0.15 && RelativeRotation > 0.05) TurnControl = -0.2;
+                    //else if (RelativeRotation >= -0.05 && RelativeRotation < 0.05) TurnControl = 0; //stop turning
+                    //else if (RelativeRotation >= -0.15 && RelativeRotation < -0.05) TurnControl = 0.2;
+                    //else TurnControl = 1;
                 } else {
                     if (RelativeRotation < 0.35 && RelativeRotation > -0.5) TurnControl = -1;
                     else if (RelativeRotation >= 0.35 && RelativeRotation < 0.45) TurnControl = -0.2;
@@ -121,33 +128,31 @@ public class BasicTeleOp extends LinearOpMode {
 
 
             // Reset Absolute Driving encoders
-            if(gamepad1.dpad_right && !AbsoluteSetting) {
-                //CurrentCoords[0] = 0.38;
-                RotationChange = 0.5;
-                //robot.resetDriveEncoders();
-                AbsoluteSetting = true;
-            } else if(gamepad1.dpad_left && !AbsoluteSetting) {
-                //CurrentCoords[0] = 5.62;
+            if(gamepad1.dpad_right && !AbsoluteSetting) { // Align heading to 180
+                myLocalizer.setPoseEstimate(new Pose2d(myPose.getX(), myPose.getY(), Math.toRadians(180)));
                 RotationChange = -0.5;
-                //robot.resetDriveEncoders();
+                AbsoluteSetting = true;
+            } else if(gamepad1.dpad_left && !AbsoluteSetting) { // Align heading to 0
+                myLocalizer.setPoseEstimate(new Pose2d(myPose.getX(), myPose.getY(), Math.toRadians(0)));
+                RotationChange = 0.5;
                 AbsoluteSetting = true;
             } else if(gamepad1.dpad_up && !AbsoluteSetting) {
-                //CurrentCoords[2] = 0;
-
-                RotationChange = 0;
-                //robot.resetDriveEncoders();
                 AbsoluteSetting = true;
             } if(gamepad1.dpad_down) {
-                //CurrentCoords[1] = 0.38;
-                robot.resetDriveEncoders();
                 AbsoluteSetting = true;
             } else if(!gamepad1.dpad_up && !gamepad1.dpad_right && !gamepad1.dpad_left && !gamepad1.dpad_down) AbsoluteSetting = false;
 
 
             // Virtual Four Bar
-            if (gamepad2.right_stick_y < 0) VFBPower = (-1 * Math.abs(Math.pow(gamepad2.right_stick_y, 3)));
-            else if (gamepad2.right_stick_y >= 0) VFBPower = (1 * Math.abs(Math.pow(gamepad2.right_stick_y, 3)));
+
+            //Initial Set Power
+            if (gamepad2.right_stick_y < 0 && robot.VFBLeft.getCurrentPosition() > -4000) VFBPower = (-1 * Math.abs(Math.pow(gamepad2.right_stick_y, 3)));
+            else if (gamepad2.right_stick_y >= 0 && robot.VFBLeft.getCurrentPosition() < 0) VFBPower = (1 * Math.abs(Math.pow(gamepad2.right_stick_y, 3)));
             else VFBPower = 0;
+
+            //Stop power in direction that will break claw
+            if (robot.Claw.getPosition() >= 0.25 + ClawOffset && (robot.VFBLeft.getCurrentPosition() <= -500 && robot.VFBLeft.getCurrentPosition() >= -1800) && VFBPower < 0) VFBPower = 0;
+            else if (robot.Claw.getPosition() >= 0.25 + ClawOffset && (robot.VFBLeft.getCurrentPosition() <= -1800 && robot.VFBLeft.getCurrentPosition() >= -3000) && VFBPower > 0) VFBPower = 0;
 
             robot.VFBRight.setPower(VFBPower);
             robot.VFBLeft.setPower(VFBPower);
@@ -174,28 +179,33 @@ public class BasicTeleOp extends LinearOpMode {
             else if (gamepad2.x) robot.Claw.setPosition(0.35 + ClawOffset);
 
 
-            telemetry.addData("FPS:", Math.round((1 / (mRuntime.time() - LastTime)) * 1000));
+            FrameRate = Math.round((1 / (mRuntime.time() - LastTime)) * 1000);
+
+            telemetry.addData("FPS:", FrameRate);
+            telemetry.addData("MSPerFrame:", (mRuntime.time() - LastTime));
             LastTime = mRuntime.time();
+            telemetry.addData("MSPerInterval:", (mRuntime.time() - LastTimeInterval));
             telemetry.addData("X:", myPose.getX());
             telemetry.addData("Y:", myPose.getY());
-            telemetry.addData("heading:", myPose.getHeading());
+            telemetry.addData("heading:", Math.toDegrees(myPose.getHeading()));
             telemetry.addData("Relative Rotation:", (RelativeRotation * 180));
             telemetry.addData("Claw:", robot.Claw.getPosition());
-            telemetry.addData("VFB:", robot.VFBLeft.getCurrentPosition());
+            telemetry.addData("VFB Pos:", robot.VFBLeft.getCurrentPosition());
+            telemetry.addData("VFB Vel:", robot.VFBLeft.getVelocity());
 
             // Distance Sensor Telemetry
             telemetry.addData("Distance left:", robot.LeftSensor.getDistance(DistanceUnit.INCH));
             telemetry.addData("Distance right:", robot.RightSensor.getDistance(DistanceUnit.INCH));
-            if (robot.LeftSensor.getDistance(DistanceUnit.INCH) < 35) telemetry.addLine("Object at middle");
-            else if (robot.RightSensor.getDistance(DistanceUnit.INCH) < 35 && robot.RightSensor.getDistance(DistanceUnit.INCH) > 19.5) telemetry.addLine("Object at right");
-            else telemetry.addLine("Object at left");
+            if (robot.LeftSensor.getDistance(DistanceUnit.INCH) > 11) telemetry.addLine("Object at right");
+            else if (robot.RightSensor.getDistance(DistanceUnit.INCH) > 10) telemetry.addLine("Object at left");
+            else telemetry.addLine("Object at middle");
 
             // HuskyLens Telemetry
-            HuskyLens.Block[] block = robot.Camera.blocks();
-            telemetry.addData("HuskyLens block count:", block.length);
-            for (int i = 0; i < block.length; i++) {
-                telemetry.addLine("ID:" + (block[i].id) + " X/Y:" + (block[i].x) + ", " + (block[i].y) + " h:" + (block[i].height) + " w:" + (block[i].width) + " origin:" + (block[i].left) + ", " + (block[i].top));
-            }
+            //HuskyLens.Block[] block = robot.Camera.blocks();
+            //telemetry.addData("HuskyLens block count:", block.length);
+            //for (int i = 0; i < block.length; i++) {
+                //telemetry.addLine("ID:" + (block[i].id) + " X/Y:" + (block[i].x) + ", " + (block[i].y) + " h:" + (block[i].height) + " w:" + (block[i].width) + " origin:" + (block[i].left) + ", " + (block[i].top));
+            //}
 
             telemetry.update();
         }
@@ -215,7 +225,9 @@ class RobotHardware {
     public final DcMotor RF, RB, LF, LB;
 
 
-    public final DcMotor Intake, VFBRight, VFBLeft;
+    public final DcMotor Intake;
+
+    public final DcMotorEx VFBRight, VFBLeft;
 
 
     public final Servo Claw, DroneLauncher;
@@ -227,12 +239,13 @@ class RobotHardware {
     public final HuskyLens Camera;
 
 
-    // PID for VFB setup
-    double IntegralSum = 0;
-    double Kp = 0;
-    double Ki = 0;
-    double Kd = 0;
-    private double lastError = 0;
+    // VFB Position PID variables
+    double PosIntegralSum = 0;
+    double PosKp = 0;
+    double PosKi = 0;
+    double PosKd = 0;
+    private double PosLastError = 0;
+
     ElapsedTime PIDtimer = new ElapsedTime();
 
 
@@ -264,8 +277,8 @@ class RobotHardware {
         LF = hardwareMap.get(DcMotor.class, "LF"); // Left Encoder
         LB = hardwareMap.get(DcMotor.class, "LB"); // Back Encoder
         Intake = hardwareMap.get(DcMotor.class, "IN");
-        VFBRight = hardwareMap.get(DcMotor.class, "VFBRight");
-        VFBLeft = hardwareMap.get(DcMotor.class, "VFBLeft");
+        VFBRight = hardwareMap.get(DcMotorEx.class, "VFBRight");
+        VFBLeft = hardwareMap.get(DcMotorEx.class, "VFBLeft");
         DroneLauncher = hardwareMap.get(Servo.class, "Launcher");
         Claw = hardwareMap.get(Servo.class, "Claw");
 
@@ -345,34 +358,34 @@ class RobotHardware {
         try {
             Thread.sleep(time);
         } catch (InterruptedException e) {
-            // Wait the set amount of time before stopping motors
+            // Wait the set amount of time in milliseconds while in a method
         }
     }
 
 
-    public double[] teamObjectPosition() { // (0 = right, 1 = middle, 2 = left), confidence percentage
-        double[] allSensorData = {0, 0, 0}; // Middle, Right, Left
+    public double[] teamObjectPosition(double LeftDistCheck, double RightDistCheck) { // (0 = left, 1 = middle, 2 = right), confidence percentage
+        double[] allSensorData = {0, 0, 0}; // Left, Middle, Right
         int totalCounts = 30;
 
         for (int i = 0; i < totalCounts; i++) {
-            if (LeftSensor.getDistance(DistanceUnit.INCH) < 35) allSensorData[0]++;
-            else if (RightSensor.getDistance(DistanceUnit.INCH) < 35) allSensorData[1]++;
-            else allSensorData[2]++;
+            if (LeftSensor.getDistance(DistanceUnit.INCH) > LeftDistCheck) allSensorData[2]++;
+            else if (RightSensor.getDistance(DistanceUnit.INCH) > RightDistCheck) allSensorData[0]++;
+            else allSensorData[1]++;
         }
         if (allSensorData[0] >= allSensorData[1] && allSensorData[0] >= allSensorData[2]) {
             return new double[]{0, allSensorData[0] / totalCounts};
-        } else if (allSensorData[1] >= allSensorData[2]) {
-            return new double[]{1, allSensorData[1] / totalCounts};
-        } else {
+        } else if (allSensorData[2] >= allSensorData[1]) {
             return new double[]{2, allSensorData[2] / totalCounts};
+        } else {
+            return new double[]{1, allSensorData[1] / totalCounts};
         }
     }
 
 
     public void driveWithControllers(double strafe, double forward, double turn, double throttle) {
         double max_power = Math.max(1, Math.max(Math.max(
-                Math.abs(-forward - strafe - turn), // LF
-                Math.abs(-forward + strafe - turn) // LB
+                Math.abs(-forward + strafe - turn), // LF
+                Math.abs(-forward - strafe - turn) // LB
         ), Math.max(
                 Math.abs(forward + strafe - turn), // RF
                 Math.abs(forward - strafe - turn) // RB
@@ -380,31 +393,57 @@ class RobotHardware {
         strafe /= max_power;
         forward /= max_power;
         turn /= max_power;
-        LF.setPower(throttle * (-forward - strafe - turn));
-        LB.setPower(throttle * (-forward + strafe - turn));
+        LF.setPower(throttle * (-forward + strafe - turn));
+        LB.setPower(throttle * (-forward - strafe - turn));
         RF.setPower(throttle * (forward + strafe - turn));
         RB.setPower(throttle * (forward - strafe - turn));
     }
 
 
-    public double PIDControl(double reference, double state) {
-        double error = reference - state;
-        IntegralSum += error * PIDtimer.seconds();
-        double derivative = (error - lastError) / PIDtimer.seconds();
-        lastError = error;
+    public double PosPID(double PosReference, double PosState) {
+        double PosError = PosReference - PosState;
+        PosIntegralSum += PosError * PIDtimer.seconds();
+        double PosDerivative = (PosError - PosLastError) / PIDtimer.seconds();
+        PosLastError = PosError;
 
         PIDtimer.reset();
 
-        return (error * Kp) + (derivative * Kd) + (IntegralSum * Ki);
+        return (PosError * PosKp) + (PosDerivative * PosKd) + (PosIntegralSum * PosKi);
     }
 
 
-    public void VFBGoToPosition(double position){
-        double power = PIDControl(position, VFBLeft.getCurrentPosition());
+    public void VFBSetPosition(double position){
+        double power = PosPID(position, VFBLeft.getCurrentPosition());
         VFBRight.setPower(power);
         VFBLeft.setPower(power);
     }
 
+
+    public void dropPixelOnBackboard() {
+        Claw.setPosition(0);
+        methodSleep(250);
+        while(VFBLeft.getCurrentPosition() >= -3600){
+            VFBRight.setPower(-0.5);
+            VFBLeft.setPower(-0.5);
+            methodSleep(10);
+        }
+        VFBRight.setPower(0);
+        VFBLeft.setPower(0);
+
+        methodSleep(250);
+
+        Claw.setPosition(0.35);
+        methodSleep(1000);
+        Claw.setPosition(0);
+        methodSleep(500);
+
+        while(VFBLeft.getCurrentPosition() <= -50){
+            VFBRight.setPower(0.5);
+            VFBLeft.setPower(0.5);
+            methodSleep(10);
+        }
+        VFBRight.setPower(0);
+        VFBLeft.setPower(0);
+    }
+
 }
-
-

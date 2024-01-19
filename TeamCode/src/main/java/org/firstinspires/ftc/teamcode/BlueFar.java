@@ -12,7 +12,7 @@ public class BlueFar extends LinearOpMode {
         RobotHardware robot = new RobotHardware(hardwareMap, telemetry);
 
 
-        boolean middle = false;
+        boolean left = false;
         boolean right = false;
 
         waitForStart();
@@ -25,17 +25,22 @@ public class BlueFar extends LinearOpMode {
 
 
         // Find where the team object is, move, and place pixel
-        if (robot.LeftSensor.getDistance(DistanceUnit.INCH) < 35) {
-            telemetry.addLine("Object at middle");
+
+        double[] objectLocation = robot.teamObjectPosition(11, 10);
+
+        if (Math.round(objectLocation[0]) == 0) {
+            telemetry.addLine("Object at left");
+            telemetry.addData("Confidence:", objectLocation[1]);
             telemetry.update();
-            middle = true;
+            left = true;
 
             sleep(500);
 
 
         }
-        else if (robot.RightSensor.getDistance(DistanceUnit.INCH) < 35) {
+        else if (Math.round(objectLocation[0]) == 2) {
             telemetry.addLine("Object at right");
+            telemetry.addData("Confidence:", objectLocation[1]);
             telemetry.update();
             right = true;
 
@@ -44,11 +49,11 @@ public class BlueFar extends LinearOpMode {
 
         }
         else {
-            telemetry.addLine("Object at left");
+            telemetry.addLine("Object at middle");
+            telemetry.addData("Confidence:", objectLocation[1]);
             telemetry.update();
 
             sleep(500);
-
 
 
         }

@@ -1,18 +1,29 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.acmerobotics.roadrunner.geometry.Pose2d;
+import com.acmerobotics.roadrunner.geometry.Vector2d;
+import com.acmerobotics.roadrunner.trajectory.Trajectory;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.DcMotor;
 
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
 
 @Autonomous(name = "BlueBoard", group = "Iterative Opmode")
 public class BlueBoard extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
         RobotHardware robot = new RobotHardware(hardwareMap, telemetry);
 
-        boolean middle = false;
-        boolean right = false;
+        SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
+
+
+        // Build roadrunner trajectories
+
+        Pose2d startPose = new Pose2d(11.78, -61.55, Math.toRadians(90));
+
+        drive.setPoseEstimate(startPose);
+
+
+
 
         waitForStart();
 
@@ -23,27 +34,30 @@ public class BlueBoard extends LinearOpMode {
 
 
         // Find where the team object is, move, and place pixel
-        if (robot.LeftSensor.getDistance(DistanceUnit.INCH) < 35) {
-            telemetry.addLine("Object at middle");
+
+        double[] objectLocation = robot.teamObjectPosition(11, 10);
+
+        if (Math.round(objectLocation[0]) == 0) {
+            telemetry.addLine("Object at left");
+            telemetry.addData("Confidence:", objectLocation[1]);
             telemetry.update();
-            middle = true;
 
             sleep(500);
 
 
-
         }
-        else if (robot.RightSensor.getDistance(DistanceUnit.INCH) < 35 && robot.RightSensor.getDistance(DistanceUnit.INCH) > 19.5) {
+        else if (Math.round(objectLocation[0]) == 2) {
             telemetry.addLine("Object at right");
+            telemetry.addData("Confidence:", objectLocation[1]);
             telemetry.update();
-            right = true;
 
             sleep(500);
 
 
         }
         else {
-            telemetry.addLine("Object at left");
+            telemetry.addLine("Object at middle");
+            telemetry.addData("Confidence:", objectLocation[1]);
             telemetry.update();
 
             sleep(500);

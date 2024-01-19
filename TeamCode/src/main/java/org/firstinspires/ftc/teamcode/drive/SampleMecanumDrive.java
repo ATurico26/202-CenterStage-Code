@@ -53,8 +53,8 @@ import java.util.List;
  */
 @Config
 public class SampleMecanumDrive extends MecanumDrive {
-    public static PIDCoefficients TRANSLATIONAL_PID = new PIDCoefficients(0, 0, 0);
-    public static PIDCoefficients HEADING_PID = new PIDCoefficients(0, 0, 0);
+    public static PIDCoefficients TRANSLATIONAL_PID = new PIDCoefficients(5, 0.2, 0);
+    public static PIDCoefficients HEADING_PID = new PIDCoefficients(8, 0.4, 0);
 
     public static double LATERAL_MULTIPLIER = 1;
 
@@ -98,8 +98,8 @@ public class SampleMecanumDrive extends MecanumDrive {
         //        DriveConstants.LOGO_FACING_DIR, DriveConstants.USB_FACING_DIR));
         //imu.initialize(parameters);
 
-        leftFront = hardwareMap.get(DcMotorEx.class, "LB");
-        leftRear = hardwareMap.get(DcMotorEx.class, "LF");
+        leftFront = hardwareMap.get(DcMotorEx.class, "LF");
+        leftRear = hardwareMap.get(DcMotorEx.class, "LB");
         rightRear = hardwareMap.get(DcMotorEx.class, "RB");
         rightFront = hardwareMap.get(DcMotorEx.class, "RF");
 
