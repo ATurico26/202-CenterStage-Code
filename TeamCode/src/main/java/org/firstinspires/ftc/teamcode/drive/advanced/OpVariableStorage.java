@@ -12,4 +12,6 @@ public class OpVariableStorage {
 
     public static double rotationChange = -0.5;
 
+    //public static double VFBPosition = 0;
+
 }

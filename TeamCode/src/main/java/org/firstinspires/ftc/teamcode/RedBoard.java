@@ -36,15 +36,18 @@ public class RedBoard extends LinearOpMode {
 
         Trajectory MoveToRightBoard = drive.trajectoryBuilder(PushPixelToRight.end(), true)
                 .back(10)
-                .splineTo(new Vector2d(49, -41.5), Math.toRadians(0))
+                //.splineTo(new Vector2d(49, -41.5), Math.toRadians(0))
+                .splineToLinearHeading(new Pose2d(49, -41.5, Math.toRadians(180)), Math.toRadians(225))
                 .build();
         Trajectory MoveToMiddleBoard = drive.trajectoryBuilder(PushPixelToMiddle.end(), true)
                 .back(10)
-                .splineTo(new Vector2d(49, -35.1), Math.toRadians(0))
+                //.splineTo(new Vector2d(49, -35.1), Math.toRadians(0))
+                .splineToLinearHeading(new Pose2d(49, -35.1, Math.toRadians(180)), Math.toRadians(225))
                 .build();
         Trajectory MoveToLeftBoard = drive.trajectoryBuilder(PushPixelToLeft.end(), true)
                 .back(10)
-                .splineTo(new Vector2d(49, -28.5), Math.toRadians(0))
+                //.splineTo(new Vector2d(49, -28.5), Math.toRadians(0))
+                .splineToLinearHeading(new Pose2d(49, -28.5, Math.toRadians(180)), Math.toRadians(225))
                 .build();
 
         Trajectory GoToParkingSpotRight = drive.trajectoryBuilder(MoveToRightBoard.end())
@@ -57,6 +60,8 @@ public class RedBoard extends LinearOpMode {
                 .lineToConstantHeading(new Vector2d(48, -62))
                 .build();
 
+        telemetry.addLine("Finished Building Trajectories");
+        telemetry.update();
 
         waitForStart();
 
@@ -75,8 +80,6 @@ public class RedBoard extends LinearOpMode {
             telemetry.addData("Confidence:", objectLocation[1]);
             telemetry.update();
 
-            //sleep(250);
-
             drive.followTrajectory(PushPixelToLeft);
             sleep(500);
             drive.followTrajectory(MoveToLeftBoard);
@@ -89,8 +92,6 @@ public class RedBoard extends LinearOpMode {
             telemetry.addLine("Object at right");
             telemetry.addData("Confidence:", objectLocation[1]);
             telemetry.update();
-
-            //sleep(250);
 
             drive.followTrajectory(PushPixelToRight);
             sleep(500);
@@ -105,8 +106,6 @@ public class RedBoard extends LinearOpMode {
             telemetry.addData("Confidence:", objectLocation[1]);
             telemetry.update();
 
-            //sleep(250);
-
             drive.followTrajectory(PushPixelToMiddle);
             sleep(500);
             drive.followTrajectory(MoveToMiddleBoard);
@@ -120,6 +119,7 @@ public class RedBoard extends LinearOpMode {
 
         OpVariableStorage.currentPose = drive.getPoseEstimate();
         OpVariableStorage.rotationChange = -0.5;
+        //OpVariableStorage.VFBPosition = robot.VFBLeft.getCurrentPosition();
 
         telemetry.addLine("End of Autonomous");
         telemetry.update();

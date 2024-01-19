@@ -415,7 +415,6 @@ class RobotHardware {
         while(VFBLeft.getCurrentPosition() >= -3600){
             VFBRight.setPower(-0.5);
             VFBLeft.setPower(-0.5);
-            methodSleep(10);
         }
         VFBRight.setPower(0);
         VFBLeft.setPower(0);
@@ -427,10 +426,9 @@ class RobotHardware {
         Claw.setPosition(0);
         methodSleep(500);
 
-        while(VFBLeft.getCurrentPosition() <= -50){
+        while(VFBLeft.getCurrentPosition() <= -20){
             VFBRight.setPower(0.5);
             VFBLeft.setPower(0.5);
-            methodSleep(10);
         }
         VFBRight.setPower(0);
         VFBLeft.setPower(0);
