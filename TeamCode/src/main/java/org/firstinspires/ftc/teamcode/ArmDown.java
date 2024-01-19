@@ -47,9 +47,9 @@ public class ArmDown extends LinearOpMode {
             else if (gamepad2.x) robot.Claw.setPosition(0.35 + ClawOffset);
 
 
-            telemetry.addData("Claw:", robot.Claw.getPosition());
             telemetry.addData("VFB Pos:", robot.VFBLeft.getCurrentPosition());
             telemetry.addData("VFB Vel:", robot.VFBLeft.getVelocity());
+            telemetry.addData("Claw:", robot.Claw.getPosition());
 
             // Distance Sensor Telemetry
             telemetry.addData("Distance left:", robot.LeftSensor.getDistance(DistanceUnit.INCH));

@@ -19,7 +19,7 @@ import com.acmerobotics.roadrunner.geometry.Pose2d;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.drive.StandardTrackingWheelLocalizer;
-import org.firstinspires.ftc.teamcode.drive.advanced.PoseStorage;
+import org.firstinspires.ftc.teamcode.drive.advanced.OpVariableStorage;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,16 +43,14 @@ public class BasicTeleOp extends LinearOpMode {
         double LastTimeInterval = mRuntime.time();
 
         double ClawOffset = 0.15;
-        int Virtual4BarHold = robot.VFBLeft.getCurrentPosition();
+        //int Virtual4BarHold = robot.VFBLeft.getCurrentPosition();
         double VFBPower = 0;
-        double RobotRotation = 0;
         double RelativeRotation = 0; // Rotation relative to starting rotation
         double AbsoluteX = 0;
         double AbsoluteY = 0;
         boolean AbsoluteSetting = false;
         double TurnControl = 0;
-        double RotationChange = 0;
-        boolean ClawMovingToStorage = false;
+        double AbsDrivingDirection = OpVariableStorage.rotationChange;
         double FrameRate = 0;
 
 
@@ -62,8 +60,12 @@ public class BasicTeleOp extends LinearOpMode {
         StandardTrackingWheelLocalizer myLocalizer = new StandardTrackingWheelLocalizer(hardwareMap, lastTrackingEncPositions, lastTrackingEncVels);
 
         //Starting Position
+        myLocalizer.setPoseEstimate(OpVariableStorage.currentPose);
 
-        myLocalizer.setPoseEstimate(PoseStorage.currentPose);
+        telemetry.addData("StartingPose:", OpVariableStorage.currentPose);
+        if (AbsDrivingDirection == 0.5) telemetry.addLine("Starting on BLUE");
+        else telemetry.addLine("Starting on RED");
+        telemetry.update();
 
 
         waitForStart();
@@ -72,18 +74,18 @@ public class BasicTeleOp extends LinearOpMode {
 
         while (opModeIsActive() && !isStopRequested()) {
 
+            LastTimeInterval = mRuntime.time();
+
             // Get Current Pose from Road Runner
             myLocalizer.update();
             Pose2d myPose = myLocalizer.getPoseEstimate();
 
-            LastTimeInterval = mRuntime.time();
-
 
             //Absolute Driving
-            //RobotRotation = -1 * (360.0 / 190) * ((robot.LF.getCurrentPosition() + robot.RF.getCurrentPosition()) * RobotHardware.encoderBad) / (2 * RobotHardware.encoderTicksPer360) + RotationChange;
+            //RobotRotation = -1 * (360.0 / 190) * ((robot.LF.getCurrentPosition() + robot.RF.getCurrentPosition()) * RobotHardware.encoderBad) / (2 * RobotHardware.encoderTicksPer360) + AbsDrivingDirection;
             //RelativeRotation = 2 * Math.signum(RobotRotation) * ((Math.abs(0.5 * RobotRotation) - Math.floor(Math.abs(0.5 * RobotRotation))) - (Math.floor(Math.abs(RobotRotation)) - 2 * Math.floor(0.5 * Math.abs(RobotRotation))));
 
-            RelativeRotation = ((-1 * myPose.getHeading()) / Math.PI) + ((Math.signum(myPose.getHeading() - (3 * Math.PI / 2))) + Math.abs(Math.signum(myPose.getHeading() - (3 * Math.PI / 2)))) + 0.5;
+            RelativeRotation = ((-1 * myPose.getHeading()) / Math.PI) + ((Math.signum(myPose.getHeading() - (3 * Math.PI / 2))) + Math.abs(Math.signum(myPose.getHeading() - (3 * Math.PI / 2)))) + AbsDrivingDirection;
 
             if (Math.abs(gamepad1.right_stick_x) < 0.05 && Math.abs(gamepad1.right_stick_y) < 0.05) {
                 AbsoluteX = Math.cos(Math.PI * RelativeRotation) * (-0.4 * Math.abs(gamepad2.left_stick_x) * gamepad2.left_stick_x) +
@@ -99,19 +101,13 @@ public class BasicTeleOp extends LinearOpMode {
 
             // Auto rotate to face VFB towards the board
             if (gamepad1.right_stick_button) {
-                if(RotationChange == 0.5) {
+                if(AbsDrivingDirection == 0.5) { // blue
                     if (RelativeRotation > -0.35 && RelativeRotation < 0.5) TurnControl = -1;
                     else if (RelativeRotation <= -0.35 && RelativeRotation > -0.45) TurnControl = -0.2;
                     else if (RelativeRotation <= -0.45 && RelativeRotation > -0.55) TurnControl = 0; //stop turning
                     else if (RelativeRotation <= -0.55 && RelativeRotation > -0.65) TurnControl = 0.2;
                     else TurnControl = 1;
-                //} else if(RotationChange == 0) {
-                    //if (RelativeRotation > 0.15 && RelativeRotation < 1) TurnControl = -1;
-                    //else if (RelativeRotation <= 0.15 && RelativeRotation > 0.05) TurnControl = -0.2;
-                    //else if (RelativeRotation >= -0.05 && RelativeRotation < 0.05) TurnControl = 0; //stop turning
-                    //else if (RelativeRotation >= -0.15 && RelativeRotation < -0.05) TurnControl = 0.2;
-                    //else TurnControl = 1;
-                } else {
+                } else { // red
                     if (RelativeRotation < 0.35 && RelativeRotation > -0.5) TurnControl = -1;
                     else if (RelativeRotation >= 0.35 && RelativeRotation < 0.45) TurnControl = -0.2;
                     else if (RelativeRotation >= 0.45 && RelativeRotation < 0.55) TurnControl = 0; //stop turning
@@ -128,15 +124,16 @@ public class BasicTeleOp extends LinearOpMode {
 
 
             // Reset Absolute Driving encoders
-            if(gamepad1.dpad_right && !AbsoluteSetting) { // Align heading to 180
-                myLocalizer.setPoseEstimate(new Pose2d(myPose.getX(), myPose.getY(), Math.toRadians(180)));
-                RotationChange = -0.5;
+            if(gamepad1.dpad_right && !AbsoluteSetting) { // Align absolute driving to red side
+                //myLocalizer.setPoseEstimate(new Pose2d(myPose.getX(), myPose.getY(), Math.toRadians(180)));
+                AbsDrivingDirection = -0.5;
                 AbsoluteSetting = true;
-            } else if(gamepad1.dpad_left && !AbsoluteSetting) { // Align heading to 0
+            } else if(gamepad1.dpad_left && !AbsoluteSetting) { // Align absolute driving to blue side
+                //myLocalizer.setPoseEstimate(new Pose2d(myPose.getX(), myPose.getY(), Math.toRadians(0)));
+                AbsDrivingDirection = 0.5;
+                AbsoluteSetting = true;
+            } else if(gamepad1.dpad_up && !AbsoluteSetting) { // emergency set current heading to 0
                 myLocalizer.setPoseEstimate(new Pose2d(myPose.getX(), myPose.getY(), Math.toRadians(0)));
-                RotationChange = 0.5;
-                AbsoluteSetting = true;
-            } else if(gamepad1.dpad_up && !AbsoluteSetting) {
                 AbsoluteSetting = true;
             } if(gamepad1.dpad_down) {
                 AbsoluteSetting = true;
@@ -187,7 +184,7 @@ public class BasicTeleOp extends LinearOpMode {
             telemetry.addData("MSPerInterval:", (mRuntime.time() - LastTimeInterval));
             telemetry.addData("X:", myPose.getX());
             telemetry.addData("Y:", myPose.getY());
-            telemetry.addData("heading:", Math.toDegrees(myPose.getHeading()));
+            telemetry.addData("Heading:", Math.toDegrees(myPose.getHeading()));
             telemetry.addData("Relative Rotation:", (RelativeRotation * 180));
             telemetry.addData("Claw:", robot.Claw.getPosition());
             telemetry.addData("VFB Pos:", robot.VFBLeft.getCurrentPosition());
@@ -249,10 +246,6 @@ class RobotHardware {
     ElapsedTime PIDtimer = new ElapsedTime();
 
 
-    static final double C1 = 3.4470252727, C2 = 2.7227136331, mmToTile = 0.00168248199744, EncoderTickToMM = 0.024,
-            encoderBad = (1.0 * 24765) / (1.0 * 4900), // (tiles supposed to go * ticks supposed to go) / (distance told to go * encoder ticks actually gone)
-            encoderTicksPer360 = 2.08784254045 * 24765 * (140.0 / 90); // encoder wheel distance for 360 degrees rotation in tile lengths * supposed encoder ticks in a tile
-
 
 
     public RobotHardware(HardwareMap hardwareMap, Telemetry telemetry){
@@ -285,16 +278,13 @@ class RobotHardware {
 
         Camera = hardwareMap.get(HuskyLens.class, "HuskyLens");
         // HuskyLens
-        telemetry.addData("HuskyLens knock:", Camera.knock());
+        telemetry.addData("HuskyLens active:", Camera.knock());
 
 
         LeftSensor = hardwareMap.get(DistanceSensor.class, "LeftSensor");
         RightSensor = hardwareMap.get(DistanceSensor.class, "RightSensor");
 
-        //RF.setDirection(DcMotor.Direction.FORWARD);
-        //RB.setDirection(DcMotor.Direction.FORWARD);
-        //LF.setDirection(DcMotor.Direction.REVERSE);
-        //LB.setDirection(DcMotor.Direction.REVERSE);
+
         Intake.setDirection(DcMotor.Direction.REVERSE);
         VFBRight.setDirection(DcMotor.Direction.REVERSE);
         VFBLeft.setDirection(DcMotor.Direction.REVERSE);

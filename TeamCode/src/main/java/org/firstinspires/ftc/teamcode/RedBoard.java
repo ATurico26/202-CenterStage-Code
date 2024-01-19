@@ -7,7 +7,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
-import org.firstinspires.ftc.teamcode.drive.advanced.PoseStorage;
+import org.firstinspires.ftc.teamcode.drive.advanced.OpVariableStorage;
 
 @Autonomous(name = "RedBoard", group = "Iterative Opmode")
 public class RedBoard extends LinearOpMode {
@@ -118,7 +118,8 @@ public class RedBoard extends LinearOpMode {
 
         }
 
-        PoseStorage.currentPose = drive.getPoseEstimate();
+        OpVariableStorage.currentPose = drive.getPoseEstimate();
+        OpVariableStorage.rotationChange = -0.5;
 
         telemetry.addLine("End of Autonomous");
         telemetry.update();
