@@ -24,7 +24,7 @@ public class RedBoard extends LinearOpMode {
         drive.setPoseEstimate(startPose);
 
         Trajectory PushPixelToRight = drive.trajectoryBuilder(startPose)
-                .lineToConstantHeading(new Vector2d(35, -39.3))
+                .lineToConstantHeading(new Vector2d(39, -33.3))
                 .build();
         Trajectory PushPixelToMiddle = drive.trajectoryBuilder(startPose)
                 .lineToConstantHeading(new Vector2d(18.4, -32.4))
@@ -35,29 +35,29 @@ public class RedBoard extends LinearOpMode {
                 .build();
 
         Trajectory MoveToRightBoard = drive.trajectoryBuilder(PushPixelToRight.end(), true)
-                .back(10)
-                //.splineTo(new Vector2d(49, -41.5), Math.toRadians(0))
-                .splineToLinearHeading(new Pose2d(49, -41.5, Math.toRadians(180)), Math.toRadians(225))
+                .back(15)
+                .splineTo(new Vector2d(47, -41.5), Math.toRadians(0))
+                //.splineToLinearHeading(new Pose2d(49, -41.5, Math.toRadians(180)), Math.toRadians(225))
                 .build();
         Trajectory MoveToMiddleBoard = drive.trajectoryBuilder(PushPixelToMiddle.end(), true)
                 .back(10)
-                //.splineTo(new Vector2d(49, -35.1), Math.toRadians(0))
-                .splineToLinearHeading(new Pose2d(49, -35.1, Math.toRadians(180)), Math.toRadians(225))
+                .splineTo(new Vector2d(47, -35.1), Math.toRadians(0))
+                //.splineToLinearHeading(new Pose2d(49, -35.1, Math.toRadians(180)), Math.toRadians(225))
                 .build();
         Trajectory MoveToLeftBoard = drive.trajectoryBuilder(PushPixelToLeft.end(), true)
                 .back(10)
-                //.splineTo(new Vector2d(49, -28.5), Math.toRadians(0))
-                .splineToLinearHeading(new Pose2d(49, -28.5, Math.toRadians(180)), Math.toRadians(225))
+                .splineTo(new Vector2d(47, -27), Math.toRadians(0))
+                //.splineToLinearHeading(new Pose2d(49, -28.5, Math.toRadians(180)), Math.toRadians(225))
                 .build();
 
         Trajectory GoToParkingSpotRight = drive.trajectoryBuilder(MoveToRightBoard.end())
-                .lineToConstantHeading(new Vector2d(48, -62))
+                .lineToConstantHeading(new Vector2d(48, -65))
                 .build();
         Trajectory GoToParkingSpotMiddle = drive.trajectoryBuilder(MoveToMiddleBoard.end())
-                .lineToConstantHeading(new Vector2d(48, -62))
+                .lineToConstantHeading(new Vector2d(48, -65))
                 .build();
         Trajectory GoToParkingSpotLeft = drive.trajectoryBuilder(MoveToLeftBoard.end())
-                .lineToConstantHeading(new Vector2d(48, -62))
+                .lineToConstantHeading(new Vector2d(48, -65))
                 .build();
 
         telemetry.addLine("Finished Building Trajectories");
@@ -66,14 +66,15 @@ public class RedBoard extends LinearOpMode {
         waitForStart();
 
         //Close claw
-        robot.Claw.setPosition(0);
-
-        sleep(250);
+        robot.Claw.setPosition(0 + robot.ClawOffset);
 
 
         // Find where the team object is, move, and place pixel
 
-        double[] objectLocation = robot.teamObjectPosition(11, 10);
+
+        // Left sensor: 9, 12 --- pixel is in blocking
+        // Right sensor: 8.2, 9
+        double[] objectLocation = robot.teamObjectPosition(10.5, 8.6);
 
         if (Math.round(objectLocation[0]) == 0) {
             telemetry.addLine("Object at left");
@@ -83,7 +84,9 @@ public class RedBoard extends LinearOpMode {
             drive.followTrajectory(PushPixelToLeft);
             sleep(500);
             drive.followTrajectory(MoveToLeftBoard);
-            sleep(500);
+            //sleep(500);
+            robot.dropPixelOnBackboard();
+            //sleep(500);
             drive.followTrajectory(GoToParkingSpotLeft);
 
 
@@ -96,7 +99,9 @@ public class RedBoard extends LinearOpMode {
             drive.followTrajectory(PushPixelToRight);
             sleep(500);
             drive.followTrajectory(MoveToRightBoard);
-            sleep(500);
+            //sleep(500);
+            robot.dropPixelOnBackboard();
+            //sleep(500);
             drive.followTrajectory(GoToParkingSpotRight);
 
 
@@ -109,7 +114,9 @@ public class RedBoard extends LinearOpMode {
             drive.followTrajectory(PushPixelToMiddle);
             sleep(500);
             drive.followTrajectory(MoveToMiddleBoard);
-            sleep(500);
+            //sleep(500);
+            robot.dropPixelOnBackboard();
+            //sleep(500);
             drive.followTrajectory(GoToParkingSpotMiddle);
 
 
@@ -118,7 +125,7 @@ public class RedBoard extends LinearOpMode {
         }
 
         OpVariableStorage.currentPose = drive.getPoseEstimate();
-        OpVariableStorage.rotationChange = -0.5;
+        OpVariableStorage.rotationChange = 0.5;
         //OpVariableStorage.VFBPosition = robot.VFBLeft.getCurrentPosition();
 
         telemetry.addLine("End of Autonomous");

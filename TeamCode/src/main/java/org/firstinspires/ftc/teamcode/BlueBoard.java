@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
+import org.firstinspires.ftc.teamcode.drive.advanced.OpVariableStorage;
 
 @Autonomous(name = "BlueBoard", group = "Iterative Opmode")
 public class BlueBoard extends LinearOpMode {
@@ -18,40 +19,89 @@ public class BlueBoard extends LinearOpMode {
 
         // Build roadrunner trajectories
 
-        Pose2d startPose = new Pose2d(11.78, -61.55, Math.toRadians(90));
+        Pose2d startPose = new Pose2d(12, 61.44, Math.toRadians(90 + 180));
 
         drive.setPoseEstimate(startPose);
 
+        Trajectory PushPixelToRight = drive.trajectoryBuilder(startPose)
+                .lineToConstantHeading(new Vector2d(38, 33.3))
+                .build();
+        Trajectory PushPixelToMiddle = drive.trajectoryBuilder(startPose)
+                .lineToConstantHeading(new Vector2d(18.4, 32.4))
+                .build();
+        Trajectory PushPixelToLeft = drive.trajectoryBuilder(startPose)
+                .forward(15)
+                .splineTo(new Vector2d(10.3, 32.3), Math.toRadians(135 + 90))
+                .build();
 
+        Trajectory MoveToRightBoard = drive.trajectoryBuilder(PushPixelToRight.end(), true)
+                .back(15)
+                .splineTo(new Vector2d(48, 41.5), Math.toRadians(0))
+                //.splineToLinearHeading(new Pose2d(49, -41.5, Math.toRadians(180)), Math.toRadians(225))
+                .build();
+        Trajectory MoveToMiddleBoard = drive.trajectoryBuilder(PushPixelToMiddle.end(), true)
+                .back(10)
+                .splineTo(new Vector2d(48, 35.1), Math.toRadians(0))
+                //.splineToLinearHeading(new Pose2d(49, -35.1, Math.toRadians(180)), Math.toRadians(225))
+                .build();
+        Trajectory MoveToLeftBoard = drive.trajectoryBuilder(PushPixelToLeft.end(), true)
+                .back(10)
+                .splineTo(new Vector2d(48, 27), Math.toRadians(0))
+                //.splineToLinearHeading(new Pose2d(49, -28.5, Math.toRadians(180)), Math.toRadians(225))
+                .build();
 
+        Trajectory GoToParkingSpotRight = drive.trajectoryBuilder(MoveToRightBoard.end())
+                .lineToConstantHeading(new Vector2d(48, 65))
+                .build();
+        Trajectory GoToParkingSpotMiddle = drive.trajectoryBuilder(MoveToMiddleBoard.end())
+                .lineToConstantHeading(new Vector2d(48, 65))
+                .build();
+        Trajectory GoToParkingSpotLeft = drive.trajectoryBuilder(MoveToLeftBoard.end())
+                .lineToConstantHeading(new Vector2d(48, 65))
+                .build();
+
+        telemetry.addLine("Finished Building Trajectories");
+        telemetry.update();
 
         waitForStart();
 
         //Close claw
-        robot.Claw.setPosition(0);
-
-        sleep(500);
+        robot.Claw.setPosition(0 + robot.ClawOffset);
 
 
         // Find where the team object is, move, and place pixel
 
-        double[] objectLocation = robot.teamObjectPosition(11, 10);
+        // Left sensor: 10, 12
+        // Right sensor: 9.8, 10 --- pixel is in blocking
+        double[] objectLocation = robot.teamObjectPosition(10.5, 7.5);
 
-        if (Math.round(objectLocation[0]) == 0) {
-            telemetry.addLine("Object at left");
-            telemetry.addData("Confidence:", objectLocation[1]);
-            telemetry.update();
-
-            sleep(500);
-
-
-        }
-        else if (Math.round(objectLocation[0]) == 2) {
+        if (Math.round(objectLocation[0]) == 2) {
             telemetry.addLine("Object at right");
             telemetry.addData("Confidence:", objectLocation[1]);
             telemetry.update();
 
+            drive.followTrajectory(PushPixelToLeft);
             sleep(500);
+            drive.followTrajectory(MoveToLeftBoard);
+            //sleep(500);
+            robot.dropPixelOnBackboard();
+            //sleep(500);
+            drive.followTrajectory(GoToParkingSpotLeft);
+
+
+        }
+        else if (Math.round(objectLocation[0]) == 1) {
+            telemetry.addLine("Object at left");
+            telemetry.addData("Confidence:", objectLocation[1]);
+            telemetry.update();
+
+            drive.followTrajectory(PushPixelToRight);
+            sleep(500);
+            drive.followTrajectory(MoveToRightBoard);
+            //sleep(500);
+            robot.dropPixelOnBackboard();
+            //sleep(500);
+            drive.followTrajectory(GoToParkingSpotRight);
 
 
         }
@@ -60,13 +110,22 @@ public class BlueBoard extends LinearOpMode {
             telemetry.addData("Confidence:", objectLocation[1]);
             telemetry.update();
 
+            drive.followTrajectory(PushPixelToMiddle);
             sleep(500);
+            drive.followTrajectory(MoveToMiddleBoard);
+            //sleep(500);
+            robot.dropPixelOnBackboard();
+            //sleep(500);
+            drive.followTrajectory(GoToParkingSpotMiddle);
+
+
 
 
         }
 
-        sleep(500);
-
+        OpVariableStorage.currentPose = drive.getPoseEstimate();
+        OpVariableStorage.rotationChange = -0.5;
+        //OpVariableStorage.VFBPosition = robot.VFBLeft.getCurrentPosition();
 
         telemetry.addLine("End of Autonomous");
         telemetry.update();

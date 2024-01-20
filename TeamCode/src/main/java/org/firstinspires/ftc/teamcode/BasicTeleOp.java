@@ -42,7 +42,7 @@ public class BasicTeleOp extends LinearOpMode {
         double LastTime = mRuntime.time();
         double LastTimeInterval = mRuntime.time();
 
-        double ClawOffset = 0.15;
+
         //int Virtual4BarHold = robot.VFBLeft.getCurrentPosition();
         double VFBPower = 0;
         double RelativeRotation = 0; // Rotation relative to starting rotation
@@ -63,7 +63,7 @@ public class BasicTeleOp extends LinearOpMode {
         myLocalizer.setPoseEstimate(OpVariableStorage.currentPose);
 
         telemetry.addData("StartingPose:", OpVariableStorage.currentPose);
-        if (AbsDrivingDirection == 0.5) telemetry.addLine("Starting on BLUE");
+        if (AbsDrivingDirection == -0.5) telemetry.addLine("Starting on BLUE");
         else telemetry.addLine("Starting on RED");
         telemetry.update();
 
@@ -101,13 +101,13 @@ public class BasicTeleOp extends LinearOpMode {
 
             // Auto rotate to face VFB towards the board
             if (gamepad1.right_stick_button) {
-                if(AbsDrivingDirection == 0.5) { // blue
+                if(AbsDrivingDirection == 0.5) { // red
                     if (RelativeRotation > -0.35 && RelativeRotation < 0.5) TurnControl = -1;
                     else if (RelativeRotation <= -0.35 && RelativeRotation > -0.45) TurnControl = -0.2;
                     else if (RelativeRotation <= -0.45 && RelativeRotation > -0.55) TurnControl = 0; //stop turning
                     else if (RelativeRotation <= -0.55 && RelativeRotation > -0.65) TurnControl = 0.2;
                     else TurnControl = 1;
-                } else { // red
+                } else { // blue
                     if (RelativeRotation < 0.35 && RelativeRotation > -0.5) TurnControl = -1;
                     else if (RelativeRotation >= 0.35 && RelativeRotation < 0.45) TurnControl = -0.2;
                     else if (RelativeRotation >= 0.45 && RelativeRotation < 0.55) TurnControl = 0; //stop turning
@@ -116,7 +116,7 @@ public class BasicTeleOp extends LinearOpMode {
                 }
             } else TurnControl = Math.abs(gamepad1.left_stick_x) * gamepad1.left_stick_x;
 
-            robot.driveWithControllers(AbsoluteX, AbsoluteY, TurnControl, 1 - 0.6 * gamepad1.left_trigger);
+            robot.driveWithControllers(AbsoluteX, AbsoluteY, TurnControl * (1 - 0.4 * gamepad1.left_trigger), 1 - 0.6 * gamepad1.left_trigger);
 
 
             // Absolute Driving off
@@ -126,11 +126,11 @@ public class BasicTeleOp extends LinearOpMode {
             // Reset Absolute Driving encoders
             if(gamepad1.dpad_right && !AbsoluteSetting) { // Align absolute driving to red side
                 //myLocalizer.setPoseEstimate(new Pose2d(myPose.getX(), myPose.getY(), Math.toRadians(180)));
-                AbsDrivingDirection = -0.5;
+                AbsDrivingDirection = 0.5;
                 AbsoluteSetting = true;
             } else if(gamepad1.dpad_left && !AbsoluteSetting) { // Align absolute driving to blue side
                 //myLocalizer.setPoseEstimate(new Pose2d(myPose.getX(), myPose.getY(), Math.toRadians(0)));
-                AbsDrivingDirection = 0.5;
+                AbsDrivingDirection = -0.5;
                 AbsoluteSetting = true;
             } else if(gamepad1.dpad_up && !AbsoluteSetting) { // emergency set current heading to 0
                 myLocalizer.setPoseEstimate(new Pose2d(myPose.getX(), myPose.getY(), Math.toRadians(0)));
@@ -148,8 +148,8 @@ public class BasicTeleOp extends LinearOpMode {
             else VFBPower = 0;
 
             //Stop power in direction that will break claw
-            if (robot.Claw.getPosition() >= 0.25 + ClawOffset && (robot.VFBLeft.getCurrentPosition() <= -500 && robot.VFBLeft.getCurrentPosition() >= -1800) && VFBPower < 0) VFBPower = 0;
-            else if (robot.Claw.getPosition() >= 0.25 + ClawOffset && (robot.VFBLeft.getCurrentPosition() <= -1800 && robot.VFBLeft.getCurrentPosition() >= -3000) && VFBPower > 0) VFBPower = 0;
+            if (robot.Claw.getPosition() >= 0.25 + robot.ClawOffset && (robot.VFBLeft.getCurrentPosition() <= -500 && robot.VFBLeft.getCurrentPosition() >= -1800) && VFBPower < 0) VFBPower = 0;
+            else if (robot.Claw.getPosition() >= 0.25 + robot.ClawOffset && (robot.VFBLeft.getCurrentPosition() <= -1800 && robot.VFBLeft.getCurrentPosition() >= -3000) && VFBPower > 0) VFBPower = 0;
 
             robot.VFBRight.setPower(VFBPower);
             robot.VFBLeft.setPower(VFBPower);
@@ -172,8 +172,8 @@ public class BasicTeleOp extends LinearOpMode {
 
 
             // Claw
-            if(gamepad2.y) robot.Claw.setPosition(0 + ClawOffset);
-            else if (gamepad2.x) robot.Claw.setPosition(0.35 + ClawOffset);
+            if(gamepad2.y) robot.Claw.setPosition(0 + robot.ClawOffset);
+            else if (gamepad2.x) robot.Claw.setPosition(0.35 + robot.ClawOffset);
 
 
             FrameRate = Math.round((1 / (mRuntime.time() - LastTime)) * 1000);
@@ -234,6 +234,10 @@ class RobotHardware {
 
 
     public final HuskyLens Camera;
+
+
+    public double ClawOffset = 0.25;
+
 
 
     // VFB Position PID variables
@@ -410,25 +414,25 @@ class RobotHardware {
 
 
     public void dropPixelOnBackboard() {
-        Claw.setPosition(0);
+        Claw.setPosition(0 + ClawOffset);
         methodSleep(250);
-        while(VFBLeft.getCurrentPosition() >= -3600){
-            VFBRight.setPower(-0.5);
-            VFBLeft.setPower(-0.5);
+        while(VFBLeft.getCurrentPosition() >= -3800){
+            VFBRight.setPower(-1);
+            VFBLeft.setPower(-1);
         }
         VFBRight.setPower(0);
         VFBLeft.setPower(0);
 
-        methodSleep(250);
+        //methodSleep(250);
 
-        Claw.setPosition(0.35);
+        Claw.setPosition(0.35 + ClawOffset);
         methodSleep(1000);
-        Claw.setPosition(0);
+        Claw.setPosition(0 + ClawOffset);
         methodSleep(500);
 
         while(VFBLeft.getCurrentPosition() <= -20){
-            VFBRight.setPower(0.5);
-            VFBLeft.setPower(0.5);
+            VFBRight.setPower(1);
+            VFBLeft.setPower(1);
         }
         VFBRight.setPower(0);
         VFBLeft.setPower(0);

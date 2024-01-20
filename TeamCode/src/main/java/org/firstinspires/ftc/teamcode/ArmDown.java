@@ -14,7 +14,7 @@ public class ArmDown extends LinearOpMode {
 
         Gamepad driver = gamepad1, operator = gamepad2;
 
-        double ClawOffset = 0.15;
+        double ClawOffset = robot.ClawOffset;
         double VFBPower = 0;
 
         waitForStart();

@@ -8,9 +8,9 @@ import com.acmerobotics.roadrunner.geometry.Pose2d;
  * A static field allows data to persist between opmodes.
  */
 public class OpVariableStorage {
-    public static Pose2d currentPose = new Pose2d();
+    public static Pose2d currentPose = new Pose2d(0, 0, Math.toRadians(90));
 
-    public static double rotationChange = -0.5;
+    public static double rotationChange = 0.5;
 
     //public static double VFBPosition = 0;
 
