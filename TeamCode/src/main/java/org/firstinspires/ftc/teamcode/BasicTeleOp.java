@@ -35,7 +35,7 @@ public class BasicTeleOp extends LinearOpMode {
 
 
         // HuskyLens
-        robot.Camera.selectAlgorithm(HuskyLens.Algorithm.TAG_RECOGNITION);
+        //robot.Camera.selectAlgorithm(HuskyLens.Algorithm.TAG_RECOGNITION);
 
 
         ElapsedTime mRuntime = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
@@ -193,9 +193,9 @@ public class BasicTeleOp extends LinearOpMode {
             // Distance Sensor Telemetry
             telemetry.addData("Distance left:", robot.LeftSensor.getDistance(DistanceUnit.INCH));
             telemetry.addData("Distance right:", robot.RightSensor.getDistance(DistanceUnit.INCH));
-            if (robot.LeftSensor.getDistance(DistanceUnit.INCH) > 11) telemetry.addLine("Object at right");
-            else if (robot.RightSensor.getDistance(DistanceUnit.INCH) > 10) telemetry.addLine("Object at left");
-            else telemetry.addLine("Object at middle");
+            //if (robot.LeftSensor.getDistance(DistanceUnit.INCH) > 11) telemetry.addLine("Object at right");
+            //else if (robot.RightSensor.getDistance(DistanceUnit.INCH) > 10) telemetry.addLine("Object at left");
+            //else telemetry.addLine("Object at middle");
 
             // HuskyLens Telemetry
             //HuskyLens.Block[] block = robot.Camera.blocks();
@@ -233,10 +233,12 @@ class RobotHardware {
     public final DistanceSensor RightSensor, LeftSensor;
 
 
-    public final HuskyLens Camera;
+    //public final HuskyLens Camera;
 
 
     public double ClawOffset = 0.25;
+
+    public double DistanceSensorError = 0.5;
 
 
 
@@ -280,9 +282,9 @@ class RobotHardware {
         Claw = hardwareMap.get(Servo.class, "Claw");
 
 
-        Camera = hardwareMap.get(HuskyLens.class, "HuskyLens");
+        //Camera = hardwareMap.get(HuskyLens.class, "HuskyLens");
         // HuskyLens
-        telemetry.addData("HuskyLens active:", Camera.knock());
+        //telemetry.addData("HuskyLens active:", Camera.knock());
 
 
         LeftSensor = hardwareMap.get(DistanceSensor.class, "LeftSensor");
@@ -362,8 +364,8 @@ class RobotHardware {
         int totalCounts = 30;
 
         for (int i = 0; i < totalCounts; i++) {
-            if (LeftSensor.getDistance(DistanceUnit.INCH) > LeftDistCheck) allSensorData[2]++;
-            else if (RightSensor.getDistance(DistanceUnit.INCH) > RightDistCheck) allSensorData[0]++;
+            if (LeftSensor.getDistance(DistanceUnit.INCH) - LeftDistCheck + DistanceSensorError / 2 > 0) allSensorData[2]++;
+            else if (RightSensor.getDistance(DistanceUnit.INCH) - RightDistCheck + DistanceSensorError / 2 > 0) allSensorData[0]++;
             else allSensorData[1]++;
         }
         if (allSensorData[0] >= allSensorData[1] && allSensorData[0] >= allSensorData[2]) {
@@ -373,6 +375,20 @@ class RobotHardware {
         } else {
             return new double[]{1, allSensorData[1] / totalCounts};
         }
+    }
+
+
+    public double[] calibrateDistanceSensors(){
+        double LeftSensorTotal = 0;
+        double RightSensorTotal = 0;
+        int totalCounts = 30;
+        double distanceSensorError = DistanceSensorError;
+
+        for (int i = 0; i < totalCounts; i++) {
+            LeftSensorTotal = LeftSensorTotal + LeftSensor.getDistance(DistanceUnit.INCH);
+            RightSensorTotal = RightSensorTotal + RightSensor.getDistance(DistanceUnit.INCH);
+        }
+        return new double[]{LeftSensorTotal / totalCounts + distanceSensorError, RightSensorTotal / totalCounts + distanceSensorError};
     }
 
 

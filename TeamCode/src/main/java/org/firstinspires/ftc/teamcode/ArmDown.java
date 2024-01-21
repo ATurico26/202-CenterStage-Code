@@ -17,6 +17,12 @@ public class ArmDown extends LinearOpMode {
         double ClawOffset = robot.ClawOffset;
         double VFBPower = 0;
 
+        double[] distanceSensorChecks = robot.calibrateDistanceSensors();
+
+        telemetry.addData("Left Sensor Check:", distanceSensorChecks[0]);
+        telemetry.addData("Right Sensor Check:", distanceSensorChecks[1]);
+        telemetry.update();
+
         waitForStart();
 
         while (opModeIsActive() && !isStopRequested()) {
@@ -54,8 +60,10 @@ public class ArmDown extends LinearOpMode {
             // Distance Sensor Telemetry
             telemetry.addData("Distance left:", robot.LeftSensor.getDistance(DistanceUnit.INCH));
             telemetry.addData("Distance right:", robot.RightSensor.getDistance(DistanceUnit.INCH));
-            if (robot.LeftSensor.getDistance(DistanceUnit.INCH) > 11) telemetry.addLine("Object at right");
-            else if (robot.RightSensor.getDistance(DistanceUnit.INCH) > 10) telemetry.addLine("Object at left");
+            telemetry.addData("Adjusted Left:", robot.LeftSensor.getDistance(DistanceUnit.INCH) - distanceSensorChecks[0] + robot.DistanceSensorError / 2);
+            telemetry.addData("Adjusted Right:", robot.RightSensor.getDistance(DistanceUnit.INCH) - distanceSensorChecks[1] + robot.DistanceSensorError / 2);
+            if (robot.LeftSensor.getDistance(DistanceUnit.INCH) > distanceSensorChecks[0]) telemetry.addLine("Object at right");
+            else if (robot.RightSensor.getDistance(DistanceUnit.INCH) > distanceSensorChecks[1]) telemetry.addLine("Object at left");
             else telemetry.addLine("Object at middle");
 
             telemetry.update();

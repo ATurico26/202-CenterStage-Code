@@ -24,43 +24,48 @@ public class BlueBoard extends LinearOpMode {
         drive.setPoseEstimate(startPose);
 
         Trajectory PushPixelToRight = drive.trajectoryBuilder(startPose)
-                .lineToConstantHeading(new Vector2d(38, 33.3))
+                .lineToConstantHeading(new Vector2d(32, 30.3))
                 .build();
         Trajectory PushPixelToMiddle = drive.trajectoryBuilder(startPose)
-                .lineToConstantHeading(new Vector2d(18.4, 32.4))
+                .lineToConstantHeading(new Vector2d(18.4, 34.4))
                 .build();
         Trajectory PushPixelToLeft = drive.trajectoryBuilder(startPose)
                 .forward(15)
-                .splineTo(new Vector2d(10.3, 32.3), Math.toRadians(135 + 90))
+                .splineTo(new Vector2d(12.3, 32.3), Math.toRadians(135 + 90))
                 .build();
 
         Trajectory MoveToRightBoard = drive.trajectoryBuilder(PushPixelToRight.end(), true)
                 .back(15)
-                .splineTo(new Vector2d(48, 41.5), Math.toRadians(0))
-                //.splineToLinearHeading(new Pose2d(49, -41.5, Math.toRadians(180)), Math.toRadians(225))
+                .splineTo(new Vector2d(49, 41.5), Math.toRadians(0))
                 .build();
         Trajectory MoveToMiddleBoard = drive.trajectoryBuilder(PushPixelToMiddle.end(), true)
                 .back(10)
-                .splineTo(new Vector2d(48, 35.1), Math.toRadians(0))
-                //.splineToLinearHeading(new Pose2d(49, -35.1, Math.toRadians(180)), Math.toRadians(225))
+                .splineTo(new Vector2d(49, 35.1), Math.toRadians(0))
                 .build();
         Trajectory MoveToLeftBoard = drive.trajectoryBuilder(PushPixelToLeft.end(), true)
                 .back(10)
-                .splineTo(new Vector2d(48, 27), Math.toRadians(0))
-                //.splineToLinearHeading(new Pose2d(49, -28.5, Math.toRadians(180)), Math.toRadians(225))
+                .splineTo(new Vector2d(49, 27), Math.toRadians(0))
                 .build();
 
         Trajectory GoToParkingSpotRight = drive.trajectoryBuilder(MoveToRightBoard.end())
-                .lineToConstantHeading(new Vector2d(48, 65))
+                .lineToConstantHeading(new Vector2d(45, 65))
                 .build();
         Trajectory GoToParkingSpotMiddle = drive.trajectoryBuilder(MoveToMiddleBoard.end())
-                .lineToConstantHeading(new Vector2d(48, 65))
+                .lineToConstantHeading(new Vector2d(45, 65))
                 .build();
         Trajectory GoToParkingSpotLeft = drive.trajectoryBuilder(MoveToLeftBoard.end())
-                .lineToConstantHeading(new Vector2d(48, 65))
+                .lineToConstantHeading(new Vector2d(45, 65))
                 .build();
 
         telemetry.addLine("Finished Building Trajectories");
+        telemetry.update();
+
+        double[] distanceSensorChecks = robot.calibrateDistanceSensors();
+
+        telemetry.addLine("Finished Building Trajectories");
+        telemetry.addData("Left Sensor Check:", distanceSensorChecks[0]);
+        telemetry.addData("Right Sensor Check:", distanceSensorChecks[1]);
+        telemetry.addLine("Ready");
         telemetry.update();
 
         waitForStart();
@@ -71,9 +76,7 @@ public class BlueBoard extends LinearOpMode {
 
         // Find where the team object is, move, and place pixel
 
-        // Left sensor: 10, 12
-        // Right sensor: 9.8, 10 --- pixel is in blocking
-        double[] objectLocation = robot.teamObjectPosition(10.5, 7.5);
+        double[] objectLocation = robot.teamObjectPosition(distanceSensorChecks[0], distanceSensorChecks[1]);
 
         if (Math.round(objectLocation[0]) == 2) {
             telemetry.addLine("Object at right");

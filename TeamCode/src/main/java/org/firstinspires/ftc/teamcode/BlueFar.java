@@ -40,22 +40,30 @@ public class BlueFar extends LinearOpMode {
                 .strafeTo(new Vector2d(-55, 55))
                 .splineToConstantHeading(new Vector2d(-60, 30), Math.toRadians(270))
                 .splineToSplineHeading(new Pose2d(-30, 9, Math.toRadians(180)), Math.toRadians(0))
-                .splineToConstantHeading(new Vector2d(60, 9), Math.toRadians(0))
+                .splineToConstantHeading(new Vector2d(55, 9), Math.toRadians(0))
                 .build();
         Trajectory GoToParkingSpotMiddle = drive.trajectoryBuilder(PushPixelToMiddle.end(), true)
                 .strafeTo(new Vector2d(-50, 50))
                 .splineToConstantHeading(new Vector2d(-55, 30), Math.toRadians(270))
                 .splineToSplineHeading(new Pose2d(-30, 9, Math.toRadians(180)), Math.toRadians(0))
-                .splineToConstantHeading(new Vector2d(60, 9), Math.toRadians(0))
+                .splineToConstantHeading(new Vector2d(55, 9), Math.toRadians(0))
                 .build();
         Trajectory GoToParkingSpotLeft = drive.trajectoryBuilder(PushPixelToLeft.end(), true)
                 .strafeTo(new Vector2d(-45, 55))
                 .splineToConstantHeading(new Vector2d(-50, 30), Math.toRadians(270))
                 .splineToSplineHeading(new Pose2d(-30, 9, Math.toRadians(180)), Math.toRadians(0))
-                .splineToConstantHeading(new Vector2d(60, 9), Math.toRadians(0))
+                .splineToConstantHeading(new Vector2d(55, 9), Math.toRadians(0))
                 .build();
 
         telemetry.addLine("Finished Building Trajectories");
+        telemetry.update();
+
+        double[] distanceSensorChecks = robot.calibrateDistanceSensors();
+
+        telemetry.addLine("Finished Building Trajectories");
+        telemetry.addData("Left Sensor Check:", distanceSensorChecks[0]);
+        telemetry.addData("Right Sensor Check:", distanceSensorChecks[1]);
+        telemetry.addLine("Ready");
         telemetry.update();
 
         waitForStart();
@@ -66,10 +74,7 @@ public class BlueFar extends LinearOpMode {
 
         // Find where the team object is, move, and place pixel
 
-
-        // Left sensor: 8.8, 10.75 --- pixel is in blocking
-        // Right sensor: 8.7, 10
-        double[] objectLocation = robot.teamObjectPosition(10, 9);
+        double[] objectLocation = robot.teamObjectPosition(distanceSensorChecks[0], distanceSensorChecks[1]);
 
         if (Math.round(objectLocation[0]) == 0) {
             telemetry.addLine("Object at left");
