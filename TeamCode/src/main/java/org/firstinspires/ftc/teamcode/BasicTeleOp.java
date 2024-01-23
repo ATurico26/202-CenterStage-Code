@@ -34,10 +34,6 @@ public class BasicTeleOp extends LinearOpMode {
         Gamepad driver = gamepad1, operator = gamepad2;
 
 
-        // HuskyLens
-        //robot.Camera.selectAlgorithm(HuskyLens.Algorithm.TAG_RECOGNITION);
-
-
         ElapsedTime mRuntime = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
         double LastTime = mRuntime.time();
         double LastTimeInterval = mRuntime.time();
@@ -81,10 +77,6 @@ public class BasicTeleOp extends LinearOpMode {
             Pose2d myPose = myLocalizer.getPoseEstimate();
 
 
-            //Absolute Driving
-            //RobotRotation = -1 * (360.0 / 190) * ((robot.LF.getCurrentPosition() + robot.RF.getCurrentPosition()) * RobotHardware.encoderBad) / (2 * RobotHardware.encoderTicksPer360) + AbsDrivingDirection;
-            //RelativeRotation = 2 * Math.signum(RobotRotation) * ((Math.abs(0.5 * RobotRotation) - Math.floor(Math.abs(0.5 * RobotRotation))) - (Math.floor(Math.abs(RobotRotation)) - 2 * Math.floor(0.5 * Math.abs(RobotRotation))));
-
             RelativeRotation = ((-1 * myPose.getHeading()) / Math.PI) + ((Math.signum(myPose.getHeading() - (3 * Math.PI / 2))) + Math.abs(Math.signum(myPose.getHeading() - (3 * Math.PI / 2)))) + AbsDrivingDirection;
 
             if (Math.abs(gamepad1.right_stick_x) < 0.05 && Math.abs(gamepad1.right_stick_y) < 0.05) {
@@ -117,10 +109,6 @@ public class BasicTeleOp extends LinearOpMode {
             } else TurnControl = Math.abs(gamepad1.left_stick_x) * gamepad1.left_stick_x;
 
             robot.driveWithControllers(AbsoluteX, AbsoluteY, TurnControl * (1 - 0.4 * gamepad1.left_trigger), 1 - 0.6 * gamepad1.left_trigger);
-
-
-            // Absolute Driving off
-            //robot.driveWithControllers(-1 * Math.abs(gamepad1.right_stick_x) * gamepad1.right_stick_x, -1 * Math.abs(gamepad1.right_stick_y) * gamepad1.right_stick_y, TurnControl, 1 - 0.6 * gamepad1.left_trigger);
 
 
             // Reset Absolute Driving encoders
@@ -197,13 +185,6 @@ public class BasicTeleOp extends LinearOpMode {
             //else if (robot.RightSensor.getDistance(DistanceUnit.INCH) > 10) telemetry.addLine("Object at left");
             //else telemetry.addLine("Object at middle");
 
-            // HuskyLens Telemetry
-            //HuskyLens.Block[] block = robot.Camera.blocks();
-            //telemetry.addData("HuskyLens block count:", block.length);
-            //for (int i = 0; i < block.length; i++) {
-                //telemetry.addLine("ID:" + (block[i].id) + " X/Y:" + (block[i].x) + ", " + (block[i].y) + " h:" + (block[i].height) + " w:" + (block[i].width) + " origin:" + (block[i].left) + ", " + (block[i].top));
-            //}
-
             telemetry.update();
         }
     }
@@ -224,6 +205,7 @@ class RobotHardware {
 
     public final DcMotor Intake;
 
+
     public final DcMotorEx VFBRight, VFBLeft;
 
 
@@ -233,10 +215,11 @@ class RobotHardware {
     public final DistanceSensor RightSensor, LeftSensor;
 
 
-    //public final HuskyLens Camera;
+    public final HuskyLens Camera;
 
 
     public double ClawOffset = 0.25;
+
 
     public double DistanceSensorError = 0.5;
 
@@ -282,9 +265,9 @@ class RobotHardware {
         Claw = hardwareMap.get(Servo.class, "Claw");
 
 
-        //Camera = hardwareMap.get(HuskyLens.class, "HuskyLens");
+        Camera = hardwareMap.get(HuskyLens.class, "HuskyLens");
         // HuskyLens
-        //telemetry.addData("HuskyLens active:", Camera.knock());
+        telemetry.addData("HuskyLens active:", Camera.knock());
 
 
         LeftSensor = hardwareMap.get(DistanceSensor.class, "LeftSensor");

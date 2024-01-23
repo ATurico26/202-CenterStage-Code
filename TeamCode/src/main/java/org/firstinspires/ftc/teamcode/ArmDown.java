@@ -3,6 +3,8 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Gamepad;
+import com.qualcomm.hardware.dfrobot.HuskyLens;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
@@ -14,8 +16,19 @@ public class ArmDown extends LinearOpMode {
 
         Gamepad driver = gamepad1, operator = gamepad2;
 
+        // HuskyLens
+        robot.Camera.selectAlgorithm(HuskyLens.Algorithm.TAG_RECOGNITION);
+
+
+        ElapsedTime mRuntime = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
+        double LastTime = mRuntime.time();
+
+
         double ClawOffset = robot.ClawOffset;
         double VFBPower = 0;
+        boolean HuskyLensActive = true;
+        boolean HuskyLensToggle = false;
+
 
         double[] distanceSensorChecks = robot.calibrateDistanceSensors();
 
@@ -53,6 +66,10 @@ public class ArmDown extends LinearOpMode {
             else if (gamepad2.x) robot.Claw.setPosition(0.35 + ClawOffset);
 
 
+
+            telemetry.addData("FPS:", Math.round((1 / (mRuntime.time() - LastTime)) * 1000));
+            telemetry.addData("MSPerFrame:", (mRuntime.time() - LastTime));
+            LastTime = mRuntime.time();
             telemetry.addData("VFB Pos:", robot.VFBLeft.getCurrentPosition());
             telemetry.addData("VFB Vel:", robot.VFBLeft.getVelocity());
             telemetry.addData("Claw:", robot.Claw.getPosition());
@@ -60,11 +77,23 @@ public class ArmDown extends LinearOpMode {
             // Distance Sensor Telemetry
             telemetry.addData("Distance left:", robot.LeftSensor.getDistance(DistanceUnit.INCH));
             telemetry.addData("Distance right:", robot.RightSensor.getDistance(DistanceUnit.INCH));
-            telemetry.addData("Adjusted Left:", robot.LeftSensor.getDistance(DistanceUnit.INCH) - distanceSensorChecks[0] + robot.DistanceSensorError / 2);
-            telemetry.addData("Adjusted Right:", robot.RightSensor.getDistance(DistanceUnit.INCH) - distanceSensorChecks[1] + robot.DistanceSensorError / 2);
-            if (robot.LeftSensor.getDistance(DistanceUnit.INCH) > distanceSensorChecks[0]) telemetry.addLine("Object at right");
-            else if (robot.RightSensor.getDistance(DistanceUnit.INCH) > distanceSensorChecks[1]) telemetry.addLine("Object at left");
-            else telemetry.addLine("Object at middle");
+
+            telemetry.addLine("");
+
+            // Toggles husky lens because otherwise it murders the framerate
+            if (gamepad1.x && !HuskyLensToggle) {
+                HuskyLensActive = !HuskyLensActive;
+                HuskyLensToggle = true;
+            } else if (!gamepad1.x) HuskyLensToggle = false;
+
+            // HuskyLens Telemetry (if enabled)
+            if (HuskyLensActive) {
+                HuskyLens.Block[] block = robot.Camera.blocks();
+                telemetry.addData("HuskyLens block count:", block.length);
+                for (HuskyLens.Block value : block) {
+                    telemetry.addLine("ID:" + (value.id) + " X/Y:" + (value.x) + ", " + (value.y) + " h:" + (value.height) + " w:" + (value.width) + " origin:" + (value.left) + ", " + (value.top));
+                }
+            } else telemetry.addLine("HuskyLens disabled");
 
             telemetry.update();
 
