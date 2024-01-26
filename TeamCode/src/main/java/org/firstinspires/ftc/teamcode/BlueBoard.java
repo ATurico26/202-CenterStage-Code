@@ -58,13 +58,6 @@ public class BlueBoard extends LinearOpMode {
                 .build();
 
         telemetry.addLine("Finished Building Trajectories");
-        telemetry.update();
-
-        double[] distanceSensorChecks = robot.calibrateDistanceSensors();
-
-        telemetry.addLine("Finished Building Trajectories");
-        telemetry.addData("Left Sensor Check:", distanceSensorChecks[0]);
-        telemetry.addData("Right Sensor Check:", distanceSensorChecks[1]);
         telemetry.addLine("Ready");
         telemetry.update();
 
@@ -76,7 +69,7 @@ public class BlueBoard extends LinearOpMode {
 
         // Find where the team object is, move, and place pixel
 
-        double[] objectLocation = robot.teamObjectPosition(distanceSensorChecks[0], distanceSensorChecks[1]);
+        double[] objectLocation = {0, 0};
 
         if (Math.round(objectLocation[0]) == 2) {
             telemetry.addLine("Object at right");

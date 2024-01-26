@@ -30,12 +30,6 @@ public class ArmDown extends LinearOpMode {
         boolean HuskyLensToggle = false;
 
 
-        double[] distanceSensorChecks = robot.calibrateDistanceSensors();
-
-        telemetry.addData("Left Sensor Check:", distanceSensorChecks[0]);
-        telemetry.addData("Right Sensor Check:", distanceSensorChecks[1]);
-        telemetry.update();
-
         waitForStart();
 
         while (opModeIsActive() && !isStopRequested()) {
@@ -73,10 +67,6 @@ public class ArmDown extends LinearOpMode {
             telemetry.addData("VFB Pos:", robot.VFBLeft.getCurrentPosition());
             telemetry.addData("VFB Vel:", robot.VFBLeft.getVelocity());
             telemetry.addData("Claw:", robot.Claw.getPosition());
-
-            // Distance Sensor Telemetry
-            telemetry.addData("Distance left:", robot.LeftSensor.getDistance(DistanceUnit.INCH));
-            telemetry.addData("Distance right:", robot.RightSensor.getDistance(DistanceUnit.INCH));
 
             telemetry.addLine("");
 
