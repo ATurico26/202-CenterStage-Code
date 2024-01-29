@@ -1,21 +1,12 @@
 package org.firstinspires.ftc.teamcode;
 
 
-import com.qualcomm.hardware.bosch.BNO055IMU;
-import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Gamepad;
-import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
-import com.qualcomm.hardware.dfrobot.HuskyLens;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 
-
-import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.drive.StandardTrackingWheelLocalizer;
 import org.firstinspires.ftc.teamcode.drive.advanced.OpVariableStorage;
 
@@ -174,7 +165,6 @@ public class BasicTeleOp extends LinearOpMode {
             telemetry.addData("Relative Rotation:", (RelativeRotation * 180));
             telemetry.addData("Claw:", robot.Claw.getPosition());
             telemetry.addData("VFB Pos:", robot.VFBLeft.getCurrentPosition());
-            telemetry.addData("VFB Vel:", robot.VFBLeft.getVelocity());
             telemetry.update();
         }
     }

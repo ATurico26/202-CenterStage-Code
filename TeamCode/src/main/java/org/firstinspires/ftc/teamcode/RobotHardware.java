@@ -77,6 +77,7 @@ public class RobotHardware {
         // HuskyLens
         Camera = hardwareMap.get(HuskyLens.class, "HuskyLens");
         telemetry.addData("HuskyLens active:", Camera.knock());
+        Camera.selectAlgorithm(HuskyLens.Algorithm.COLOR_RECOGNITION);
 
 
         Intake.setDirection(DcMotor.Direction.REVERSE);
@@ -167,6 +168,34 @@ public class RobotHardware {
         double power = PosPID(position, VFBLeft.getCurrentPosition());
         VFBRight.setPower(power);
         VFBLeft.setPower(power);
+    }
+
+
+    public double[] findTeamObject(boolean isBlue) {
+        int interations = 30;
+        double[] objectLocation = {0, 0, 0}; // left, middle, right
+
+        for (int i = 0; i < interations; i++) {
+            HuskyLens.Block[] block = Camera.blocks();
+
+            for (HuskyLens.Block value : block) {
+                if (!isBlue && value.id == 1) { // RED
+                    if ((value.x > 50 && value.x < 80 && value.y > 150 && value.y < 180) && (value.height > 50 && value.height < 75 && value.width > 50 && value.width < 75)) { // left
+                        objectLocation[0]++;
+                    } else if ((value.x > 200 && value.x < 240 && value.y > 130 && value.y < 160) && (value.height > 30 && value.height < 55 && value.width > 60 && value.width < 90)) { // middle
+                        objectLocation[1]++;
+                    }
+                } else if (isBlue && value.id == 2) { // BLUE
+                    if ((value.x > 50 && value.x < 80 && value.y > 150 && value.y < 180) && (value.height > 55 && value.height < 80 && value.width > 55 && value.width < 80)) { // left
+                        objectLocation[0]++;
+                    } else if ((value.x > 200 && value.x < 240 && value.y > 130 && value.y < 160) && (value.height > 30 && value.height < 55 && value.width > 30 && value.width < 65)) { // middle
+                        objectLocation[1]++;
+                    }
+                } else objectLocation[2]++; // right
+            }
+        }
+        double[] temporary = {0,0};
+        return temporary;
     }
 
 

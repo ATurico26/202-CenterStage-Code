@@ -16,9 +16,6 @@ public class ArmDown extends LinearOpMode {
 
         Gamepad driver = gamepad1, operator = gamepad2;
 
-        // HuskyLens
-        robot.Camera.selectAlgorithm(HuskyLens.Algorithm.TAG_RECOGNITION);
-
 
         ElapsedTime mRuntime = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
         double LastTime = mRuntime.time();
@@ -70,7 +67,7 @@ public class ArmDown extends LinearOpMode {
 
             telemetry.addLine("");
 
-            // Toggles husky lens because otherwise it murders the framerate
+            // Toggles husky lens
             if (gamepad1.x && !HuskyLensToggle) {
                 HuskyLensActive = !HuskyLensActive;
                 HuskyLensToggle = true;
