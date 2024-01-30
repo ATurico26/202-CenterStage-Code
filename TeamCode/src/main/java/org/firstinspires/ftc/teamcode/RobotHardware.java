@@ -162,8 +162,6 @@ public class RobotHardware {
         for (int i = 0; i < interations; i++) {
             HuskyLens.Block[] block = Camera.blocks();
 
-
-            // Checks each color with their own values in case any need to be changed only for one color at comp
             for (HuskyLens.Block value : block) {
                 if (value.id == idCheck || idCheck == 0) {
                     if ((value.x > 60 && value.x < 80 && value.y > 150 && value.y < 175) && (value.height > 45 && value.height < 75 && value.width > 45 && value.width < 75)) { // left
@@ -174,12 +172,15 @@ public class RobotHardware {
                 } else objectLocation[2]++; // right
             }
         }
+
+        double totalObjects = objectLocation[0] + objectLocation[1] + objectLocation[2];
+
         if (objectLocation[0] >= objectLocation[1] && objectLocation[0] >= objectLocation[2]) {
-            return new double[]{0, objectLocation[0] / interations}; // left
+            return new double[]{0, objectLocation[0] / totalObjects}; // left
         } else if (objectLocation[1] >= objectLocation[2]) {
-            return new double[]{1, objectLocation[1] / interations}; // middle
+            return new double[]{1, objectLocation[1] / totalObjects}; // middle
         } else {
-            return new double[]{2, objectLocation[2] / interations}; // right
+            return new double[]{2, objectLocation[2] / totalObjects}; // right
         }
     }
 
