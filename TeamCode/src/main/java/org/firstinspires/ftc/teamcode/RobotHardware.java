@@ -15,9 +15,6 @@ public class RobotHardware {
     public final Telemetry telemetry;
 
 
-    //public final BNO055IMU imu;
-
-
     public final DcMotor RF, RB, LF, LB;
 
 
@@ -33,7 +30,7 @@ public class RobotHardware {
     public final HuskyLens Camera;
 
 
-    public double ClawOffset = -0.25;
+    public double ClawOffset = 0;
 
 
     // VFB Position PID variables
@@ -48,19 +45,6 @@ public class RobotHardware {
 
     public RobotHardware(HardwareMap hardwareMap, Telemetry telemetry) {
         this.telemetry = telemetry;
-
-
-        //BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
-        //parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
-        //parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
-        //parameters.calibrationDataFile = "BNO055IMUCalibration.json"; // see the calibration sample opmode
-        //parameters.loggingEnabled = true;
-        //parameters.loggingTag = "IMU";
-        //parameters.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
-
-
-        //imu = hardwareMap.get(BNO055IMU.class, "imu");
-        //imu.initialize(parameters);
 
 
         RF = hardwareMap.get(DcMotor.class, "RF"); // Right Encoder
@@ -171,31 +155,32 @@ public class RobotHardware {
     }
 
 
-    public double[] findTeamObject(boolean isBlue) {
+    public double[] findTeamObject(int idCheck) { // 0 for any ID, 1 is red, 2 is blue
         int interations = 30;
         double[] objectLocation = {0, 0, 0}; // left, middle, right
 
         for (int i = 0; i < interations; i++) {
             HuskyLens.Block[] block = Camera.blocks();
 
+
+            // Checks each color with their own values in case any need to be changed only for one color at comp
             for (HuskyLens.Block value : block) {
-                if (!isBlue && value.id == 1) { // RED
-                    if ((value.x > 50 && value.x < 80 && value.y > 150 && value.y < 180) && (value.height > 50 && value.height < 75 && value.width > 50 && value.width < 75)) { // left
+                if (value.id == idCheck || idCheck == 0) {
+                    if ((value.x > 60 && value.x < 80 && value.y > 150 && value.y < 175) && (value.height > 45 && value.height < 75 && value.width > 45 && value.width < 75)) { // left
                         objectLocation[0]++;
-                    } else if ((value.x > 200 && value.x < 240 && value.y > 130 && value.y < 160) && (value.height > 30 && value.height < 55 && value.width > 60 && value.width < 90)) { // middle
-                        objectLocation[1]++;
-                    }
-                } else if (isBlue && value.id == 2) { // BLUE
-                    if ((value.x > 50 && value.x < 80 && value.y > 150 && value.y < 180) && (value.height > 55 && value.height < 80 && value.width > 55 && value.width < 80)) { // left
-                        objectLocation[0]++;
-                    } else if ((value.x > 200 && value.x < 240 && value.y > 130 && value.y < 160) && (value.height > 30 && value.height < 55 && value.width > 30 && value.width < 65)) { // middle
+                    } else if ((value.x > 205 && value.x < 225 && value.y > 135 && value.y < 155) && (value.height > 35 && value.height < 75 && value.width > 35 && value.width < 75)) { // middle
                         objectLocation[1]++;
                     }
                 } else objectLocation[2]++; // right
             }
         }
-        double[] temporary = {0,0};
-        return temporary;
+        if (objectLocation[0] >= objectLocation[1] && objectLocation[0] >= objectLocation[2]) {
+            return new double[]{0, objectLocation[0] / interations}; // left
+        } else if (objectLocation[1] >= objectLocation[2]) {
+            return new double[]{1, objectLocation[1] / interations}; // middle
+        } else {
+            return new double[]{2, objectLocation[2] / interations}; // right
+        }
     }
 
 
@@ -211,7 +196,7 @@ public class RobotHardware {
 
         //methodSleep(250);
 
-        Claw.setPosition(0.35 + ClawOffset);
+        Claw.setPosition(0.15 + ClawOffset);
         methodSleep(1000);
         Claw.setPosition(0 + ClawOffset);
         methodSleep(500);

@@ -125,8 +125,8 @@ public class BasicTeleOp extends LinearOpMode {
             else VFBPower = 0;
 
             //Stop power in direction that will break claw
-            if (robot.Claw.getPosition() >= 0.25 + robot.ClawOffset && (robot.VFBLeft.getCurrentPosition() <= -500 && robot.VFBLeft.getCurrentPosition() >= -1800) && VFBPower < 0) VFBPower = 0;
-            else if (robot.Claw.getPosition() >= 0.25 + robot.ClawOffset && (robot.VFBLeft.getCurrentPosition() <= -1800 && robot.VFBLeft.getCurrentPosition() >= -3000) && VFBPower > 0) VFBPower = 0;
+            if (robot.Claw.getPosition() >= 0.1 + robot.ClawOffset && (robot.VFBLeft.getCurrentPosition() <= -500 && robot.VFBLeft.getCurrentPosition() >= -1800) && VFBPower < 0) VFBPower = 0;
+            else if (robot.Claw.getPosition() >= 0.1 + robot.ClawOffset && (robot.VFBLeft.getCurrentPosition() <= -1800 && robot.VFBLeft.getCurrentPosition() >= -3000) && VFBPower > 0) VFBPower = 0;
 
             robot.VFBRight.setPower(VFBPower);
             robot.VFBLeft.setPower(VFBPower);
@@ -150,7 +150,7 @@ public class BasicTeleOp extends LinearOpMode {
 
             // Claw
             if (gamepad2.y) robot.Claw.setPosition(0 + robot.ClawOffset);
-            else if (gamepad2.x) robot.Claw.setPosition(0.35 + robot.ClawOffset);
+            else if (gamepad2.x) robot.Claw.setPosition(0.15 + robot.ClawOffset);
 
 
             FrameRate = Math.round((1 / (mRuntime.time() - LastTime)) * 1000);

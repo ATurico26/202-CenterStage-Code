@@ -69,7 +69,7 @@ public class BlueBoard extends LinearOpMode {
 
         // Find where the team object is, move, and place pixel
 
-        double[] objectLocation = {0, 0};
+        double[] objectLocation = robot.findTeamObject(2);
 
         if (Math.round(objectLocation[0]) == 2) {
             telemetry.addLine("Object at right");

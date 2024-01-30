@@ -67,7 +67,7 @@ public class RedFar extends LinearOpMode {
 
         // Find where the team object is, move, and place pixel
 
-        double[] objectLocation = {0, 0};
+        double[] objectLocation = robot.findTeamObject(1);
 
         if (Math.round(objectLocation[0]) == 2) {
             telemetry.addLine("Object at right");

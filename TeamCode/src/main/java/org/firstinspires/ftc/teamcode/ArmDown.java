@@ -23,8 +23,17 @@ public class ArmDown extends LinearOpMode {
 
         double ClawOffset = robot.ClawOffset;
         double VFBPower = 0;
-        boolean HuskyLensActive = true;
-        boolean HuskyLensToggle = false;
+        int HuskyIDCheck = 0;
+        boolean HuskyIDSwitch = false;
+        boolean HuskyAutonomousCheck = false;
+        double[] teamObjectLocation = robot.findTeamObject(0);
+
+        telemetry.addLine("Both colors");
+        if (teamObjectLocation[0] == 0) telemetry.addLine("Location: Left");
+        else if (teamObjectLocation[0] == 1) telemetry.addLine("Location: Middle");
+        else if (teamObjectLocation[0] == 2) telemetry.addLine("Location: Right");
+        telemetry.addData("Confidence: ", teamObjectLocation[1]);
+        telemetry.update();
 
 
         waitForStart();
@@ -54,7 +63,7 @@ public class ArmDown extends LinearOpMode {
 
             // Claw
             if(gamepad2.y) robot.Claw.setPosition(0 + ClawOffset);
-            else if (gamepad2.x) robot.Claw.setPosition(0.35 + ClawOffset);
+            else if (gamepad2.x) robot.Claw.setPosition(0.15 + ClawOffset);
 
 
 
@@ -67,20 +76,35 @@ public class ArmDown extends LinearOpMode {
 
             telemetry.addLine("");
 
+            // checks position of object like it would in autonomous
+            if (gamepad1.y && !HuskyAutonomousCheck) {
+                teamObjectLocation = robot.findTeamObject(HuskyIDCheck);
+                HuskyAutonomousCheck = true;
+            } else if (!gamepad1.y) HuskyAutonomousCheck = false;
+
             // Toggles husky lens
-            if (gamepad1.x && !HuskyLensToggle) {
-                HuskyLensActive = !HuskyLensActive;
-                HuskyLensToggle = true;
-            } else if (!gamepad1.x) HuskyLensToggle = false;
+            if (gamepad1.x && !HuskyIDSwitch) {
+                HuskyIDCheck++;
+                if (HuskyIDCheck > 2) HuskyIDCheck = 0;
+                HuskyIDSwitch = true;
+            } else if (!gamepad1.x) HuskyIDSwitch = false;
 
             // HuskyLens Telemetry (if enabled)
-            if (HuskyLensActive) {
-                HuskyLens.Block[] block = robot.Camera.blocks();
-                telemetry.addData("HuskyLens block count:", block.length);
-                for (HuskyLens.Block value : block) {
-                    telemetry.addLine("ID:" + (value.id) + " X/Y:" + (value.x) + ", " + (value.y) + " h:" + (value.height) + " w:" + (value.width) + " origin:" + (value.left) + ", " + (value.top));
-                }
-            } else telemetry.addLine("HuskyLens disabled");
+            HuskyLens.Block[] block = robot.Camera.blocks();
+            telemetry.addData("HuskyLens block count:", block.length);
+            for (HuskyLens.Block value : block) {
+                telemetry.addLine("ID:" + (value.id) + " X/Y:" + (value.x) + ", " + (value.y) + " h:" + (value.height) + " w:" + (value.width) + " origin:" + (value.left) + ", " + (value.top));
+            }
+
+            telemetry.addLine(" ");
+            if (HuskyIDCheck == 0) telemetry.addLine("Both colors");
+            else if (HuskyIDCheck == 1) telemetry.addLine("Red");
+            else if (HuskyIDCheck == 2) telemetry.addLine("Blue");
+
+            if (teamObjectLocation[0] == 0) telemetry.addLine("Location: Left");
+            else if (teamObjectLocation[0] == 1) telemetry.addLine("Location: Middle");
+            else if (teamObjectLocation[0] == 2) telemetry.addLine("Location: Right");
+            telemetry.addData("Confidence: ", teamObjectLocation[1]);
 
             telemetry.update();
 
