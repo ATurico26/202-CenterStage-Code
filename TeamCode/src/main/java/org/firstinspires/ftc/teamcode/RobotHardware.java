@@ -236,10 +236,10 @@ public class RobotHardware {
 
         if (CoincidingPixelsLeft < 100 * interations && CoincidingPixelsMiddle < 100 * interations) { // right
             return new double[]{2, (totalLeftPixels + totalMiddlePixels - CoincidingPixelsLeft - CoincidingPixelsMiddle) / (totalLeftPixels + totalMiddlePixels)};
-        } else if (CoincidingPixelsLeft >= CoincidingPixelsMiddle) { // left
-            return new double[]{0, CoincidingPixelsLeft / totalLeftPixels};
-        } else { // middle
-            return new double[]{1, CoincidingPixelsMiddle / totalMiddlePixels};
+        } else if (CoincidingPixelsLeft / totalLeftPixels >= CoincidingPixelsMiddle / totalMiddlePixels) {
+            return new double[]{0, CoincidingPixelsLeft / totalLeftPixels}; // left
+        } else {
+            return new double[]{1, CoincidingPixelsMiddle / totalMiddlePixels}; // middle
         }
     }
 
