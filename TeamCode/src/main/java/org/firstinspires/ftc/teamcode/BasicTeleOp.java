@@ -28,7 +28,6 @@ public class BasicTeleOp extends LinearOpMode {
         double LastTimeInterval = mRuntime.time();
 
 
-        //int Virtual4BarHold = robot.VFBLeft.getCurrentPosition();
         double VFBPower = 0;
         double RelativeRotation = 0; // Rotation relative to starting rotation
         double AbsoluteX = 0;

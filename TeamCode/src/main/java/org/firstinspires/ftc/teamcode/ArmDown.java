@@ -26,7 +26,10 @@ public class ArmDown extends LinearOpMode {
         int HuskyIDCheck = 0;
         boolean HuskyIDSwitch = false;
         boolean HuskyAutonomousCheck = false;
-        double[] teamObjectLocation = robot.findTeamObject(0);
+        double[] leftZone = {42, 133, 60, 60}; // origin x, origin y, height, width
+        double[] middleZone = {194, 128, 43, 43};
+        double[] teamObjectLocation = robot.findTeamObjectPixels(new int[]{1, 2, 3, 4});
+
 
         telemetry.addLine("Both colors");
         if (teamObjectLocation[0] == 0) telemetry.addLine("Location: Left");
@@ -77,10 +80,12 @@ public class ArmDown extends LinearOpMode {
             telemetry.addLine("");
 
             // checks position of object like it would in autonomous
-            if (gamepad1.y && !HuskyAutonomousCheck) {
-                teamObjectLocation = robot.findTeamObject(HuskyIDCheck);
-                HuskyAutonomousCheck = true;
-            } else if (!gamepad1.y) HuskyAutonomousCheck = false;
+            if (gamepad1.y) { //  && !HuskyAutonomousCheck
+                if (HuskyIDCheck == 1) teamObjectLocation = robot.findTeamObjectPixels(new int[]{1, 2});
+                else if (HuskyIDCheck == 2) teamObjectLocation = robot.findTeamObjectPixels(new int[]{3, 4});
+                else teamObjectLocation = robot.findTeamObjectPixels(new int[]{1, 2, 3, 4});
+                // HuskyAutonomousCheck = true;
+            } // else if (!gamepad1.y) HuskyAutonomousCheck = false;
 
             // Toggles husky lens
             if (gamepad1.x && !HuskyIDSwitch) {
@@ -93,8 +98,13 @@ public class ArmDown extends LinearOpMode {
             HuskyLens.Block[] block = robot.Camera.blocks();
             telemetry.addData("HuskyLens block count:", block.length);
             for (HuskyLens.Block value : block) {
-                telemetry.addLine("ID:" + (value.id) + " X/Y:" + (value.x) + ", " + (value.y) + " h:" + (value.height) + " w:" + (value.width) + " origin:" + (value.left) + ", " + (value.top));
+                telemetry.addLine("ID" + (value.id) + " x" + (value.x) + " y" + (value.y) + // Id, center X, center Y
+                        " h" + (value.height) + " w" + (value.width) + " ox" + (value.left) + " oy" + (value.top) + // height, width, origin X, Origin Y
+                        " l" + robot.coincidingArea(leftZone, new double[] {value.left, value.top, value.height, value.width}) + // pixels in left zone
+                        " m" + robot.coincidingArea(middleZone, new double[] {value.left, value.top, value.height, value.width})); // pixels in middle zone
             }
+
+
 
             telemetry.addLine(" ");
             if (HuskyIDCheck == 0) telemetry.addLine("Both colors");
@@ -107,11 +117,6 @@ public class ArmDown extends LinearOpMode {
             telemetry.addData("Confidence: ", teamObjectLocation[1]);
 
             telemetry.update();
-
-
         }
-
-
     }
-
 }

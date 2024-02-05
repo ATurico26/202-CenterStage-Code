@@ -67,11 +67,11 @@ public class BlueFar extends LinearOpMode {
 
         // Find where the team object is, move, and place pixel
 
-        double[] objectLocation = robot.findTeamObject(2);
+        double[] objectLocation = robot.findTeamObjectPixels(new int[]{3, 4});
 
         if (Math.round(objectLocation[0]) == 0) {
             telemetry.addLine("Object at left");
-            telemetry.addData("Confidence:", objectLocation[1]);
+            telemetry.addData("Confidence: ", objectLocation[1]);
             telemetry.update();
 
             drive.followTrajectory(PushPixelToLeft);
@@ -83,7 +83,7 @@ public class BlueFar extends LinearOpMode {
         }
         else if (Math.round(objectLocation[0]) == 2) {
             telemetry.addLine("Object at right");
-            telemetry.addData("Confidence:", objectLocation[1]);
+            telemetry.addData("Confidence: ", objectLocation[1]);
             telemetry.update();
 
             drive.followTrajectory(PushPixelToRight);
@@ -95,7 +95,7 @@ public class BlueFar extends LinearOpMode {
         }
         else {
             telemetry.addLine("Object at middle");
-            telemetry.addData("Confidence:", objectLocation[1]);
+            telemetry.addData("Confidence: ", objectLocation[1]);
             telemetry.update();
 
             drive.followTrajectory(PushPixelToMiddle);

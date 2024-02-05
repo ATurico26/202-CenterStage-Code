@@ -9,6 +9,8 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
+import java.util.ArrayList;
+
 public class RobotHardware {
 
     public final HardwareMap map;
@@ -155,32 +157,89 @@ public class RobotHardware {
     }
 
 
-    public double[] findTeamObject(int idCheck) { // 0 for any ID, 1 is red, 2 is blue
-        int interations = 30;
-        double[] objectLocation = {0, 0, 0}; // left, middle, right
+    public boolean contains(final int[] array, final int key) {
+        for (final int i : array) if (i == key) return true;
+        return false;
+    }
+
+
+    public double[] findTeamObject(int[] idCheck) {
+        int interations = 50;
+        double averageXTotal = 0;
+        double averageYTotal = 0;
+        double averageHeightTotal = 0;
+        double averageWidthTotal = 0;
+        int totalObjects = 0;
+
 
         for (int i = 0; i < interations; i++) {
             HuskyLens.Block[] block = Camera.blocks();
 
             for (HuskyLens.Block value : block) {
-                if (value.id == idCheck || idCheck == 0) {
-                    if ((value.x > 60 && value.x < 80 && value.y > 150 && value.y < 175) && (value.height > 45 && value.height < 75 && value.width > 45 && value.width < 75)) { // left
-                        objectLocation[0]++;
-                    } else if ((value.x > 205 && value.x < 225 && value.y > 135 && value.y < 155) && (value.height > 35 && value.height < 75 && value.width > 35 && value.width < 75)) { // middle
-                        objectLocation[1]++;
+                if (contains(idCheck, value.id)) {
+                    if ((value.x > 30 && value.x < 250 && value.y > 130 && value.y < 180) && ((double) Math.abs(value.height - value.width) / Math.max(value.height, value.width) < 0.5)) {
+                        totalObjects++;
+                        averageXTotal = averageXTotal + value.x;
+                        averageYTotal = averageYTotal + value.y;
+                        averageHeightTotal = averageHeightTotal + value.height;
+                        averageWidthTotal = averageWidthTotal + value.width;
                     }
-                } else objectLocation[2]++; // right
+                }
             }
         }
 
-        double totalObjects = objectLocation[0] + objectLocation[1] + objectLocation[2];
+        averageXTotal = averageXTotal / totalObjects;
+        averageYTotal = averageYTotal / totalObjects;
+        averageHeightTotal = averageHeightTotal / totalObjects;
+        averageWidthTotal = averageWidthTotal / totalObjects;
 
-        if (objectLocation[0] >= objectLocation[1] && objectLocation[0] >= objectLocation[2]) {
-            return new double[]{0, objectLocation[0] / totalObjects}; // left
-        } else if (objectLocation[1] >= objectLocation[2]) {
-            return new double[]{1, objectLocation[1] / totalObjects}; // middle
+
+        if ((averageXTotal > 50 && averageXTotal < 75 && averageYTotal > 150 && averageYTotal < 175) && (averageHeightTotal > 45 && averageHeightTotal < 80 && averageWidthTotal > 45 && averageWidthTotal < 80)) {
+            return new double[]{0, totalObjects}; // left
+        } else if ((averageXTotal > 205 && averageXTotal < 230 && averageYTotal > 135 && averageYTotal < 160) && (averageHeightTotal > 30 && averageHeightTotal < 80 && averageWidthTotal > 30 && averageWidthTotal < 80)) {
+            return new double[]{1, totalObjects}; // middle
         } else {
-            return new double[]{2, objectLocation[2] / totalObjects}; // right
+            return new double[]{2, totalObjects}; // right
+        }
+    }
+
+
+    public double coincidingArea(double[] Tar, double[] Det) {
+        double areaX = Math.min(Math.min(Tar[0] + Tar[3] - Det[0], Det[0] + Det[3] - Tar[0]), Math.min(Tar[3], Det[3]));
+        double areaY = Math.min(Math.min(Tar[1] + Tar[2] - Det[1], Det[1] + Det[2] - Tar[1]), Math.min(Tar[2], Det[2]));
+        if (areaX > 0 && areaY > 0) return areaX * areaY;
+        else return 0;
+    }
+
+
+    public double[] findTeamObjectPixels(int[] idCheck) {
+        int interations = 50;
+        double CoincidingPixelsLeft = 0;
+        double CoincidingPixelsMiddle = 0;
+        double totalLeftPixels = 0;
+        double totalMiddlePixels = 0;
+        double[] leftZone = {42, 133, 60, 60}; // origin x, origin y, height, width
+        double[] middleZone = {194, 128, 43, 43};
+
+        for (int i = 0; i < interations; i++) {
+            HuskyLens.Block[] block = Camera.blocks();
+
+            for (HuskyLens.Block value : block) {
+                if (contains(idCheck, value.id)) {
+                    totalLeftPixels = totalLeftPixels + leftZone[2] * leftZone[3];
+                    totalMiddlePixels = totalMiddlePixels + middleZone[2] * middleZone[3];
+                    CoincidingPixelsLeft = CoincidingPixelsLeft + coincidingArea(leftZone, new double[] {value.left, value.top, value.height, value.width});
+                    CoincidingPixelsMiddle = CoincidingPixelsMiddle + coincidingArea(middleZone, new double[] {value.left, value.top, value.height, value.width});
+                }
+            }
+        }
+
+        if (CoincidingPixelsLeft < 100 * interations && CoincidingPixelsMiddle < 100 * interations) { // right
+            return new double[]{2, (totalLeftPixels + totalMiddlePixels - CoincidingPixelsLeft - CoincidingPixelsMiddle) / (totalLeftPixels + totalMiddlePixels)};
+        } else if (CoincidingPixelsLeft >= CoincidingPixelsMiddle) { // left
+            return new double[]{0, CoincidingPixelsLeft / totalLeftPixels};
+        } else { // middle
+            return new double[]{1, CoincidingPixelsMiddle / totalMiddlePixels};
         }
     }
 
