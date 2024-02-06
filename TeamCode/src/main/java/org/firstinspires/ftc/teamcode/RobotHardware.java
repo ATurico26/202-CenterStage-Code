@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.teamcode.drive.advanced.OpVariableStorage;
 
 import java.util.ArrayList;
 
@@ -209,6 +210,7 @@ public class RobotHardware {
         while (VFBLeft.getCurrentPosition() >= -3900) {
             VFBRight.setPower(-1);
             VFBLeft.setPower(-1);
+            OpVariableStorage.VFBPosition = VFBLeft.getCurrentPosition();
         }
         VFBRight.setPower(0);
         VFBLeft.setPower(0);
@@ -223,6 +225,7 @@ public class RobotHardware {
         while (VFBLeft.getCurrentPosition() <= -20) {
             VFBRight.setPower(1);
             VFBLeft.setPower(1);
+            OpVariableStorage.VFBPosition = VFBLeft.getCurrentPosition();
         }
         VFBRight.setPower(0);
         VFBLeft.setPower(0);

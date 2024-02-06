@@ -5,14 +5,12 @@ import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.acmerobotics.roadrunner.trajectory.Trajectory;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.DcMotor;
 
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
 import org.firstinspires.ftc.teamcode.drive.advanced.OpVariableStorage;
 
-@Autonomous(name = "BlueFarLine", group = "Iterative Opmode")
-public class BlueFar extends LinearOpMode {
+@Autonomous(name = "BlueFarPixelPlace", group = "Iterative Opmode")
+public class BlueFarPixelPlace extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
         RobotHardware robot = new RobotHardware(hardwareMap, telemetry);
 
@@ -40,19 +38,29 @@ public class BlueFar extends LinearOpMode {
                 .splineToConstantHeading(new Vector2d(-33, 50), Math.toRadians(270))
                 .splineToConstantHeading(new Vector2d(-30, 18), Math.toRadians(270))
                 .splineToSplineHeading(new Pose2d(-30, 9, Math.toRadians(180)), Math.toRadians(0))
-                .splineToConstantHeading(new Vector2d(55, 9), Math.toRadians(0))
+                .splineToConstantHeading(new Vector2d(48, 9), Math.toRadians(0))
                 .build();
         Trajectory GoToParkingSpotMiddle = drive.trajectoryBuilder(PushPixelToMiddle.end(), true)
                 .strafeTo(new Vector2d(-53, 45))
                 .splineToConstantHeading(new Vector2d(-55, 30), Math.toRadians(270))
                 .splineToSplineHeading(new Pose2d(-35, 9, Math.toRadians(180)), Math.toRadians(0))
-                .splineToConstantHeading(new Vector2d(55, 9), Math.toRadians(0))
+                .splineToConstantHeading(new Vector2d(48, 9), Math.toRadians(0))
                 .build();
         Trajectory GoToParkingSpotLeft = drive.trajectoryBuilder(PushPixelToLeft.end(), true)
                 .strafeTo(new Vector2d(-45, 55))
                 .splineToConstantHeading(new Vector2d(-50, 30), Math.toRadians(270))
                 .splineToSplineHeading(new Pose2d(-30, 9, Math.toRadians(180)), Math.toRadians(0))
-                .splineToConstantHeading(new Vector2d(55, 9), Math.toRadians(0))
+                .splineToConstantHeading(new Vector2d(48, 9), Math.toRadians(0))
+                .build();
+
+        Trajectory MoveToRightBoard = drive.trajectoryBuilder(PushPixelToRight.end(), true)
+                .lineToConstantHeading(new Vector2d(48, 41.5))
+                .build();
+        Trajectory MoveToMiddleBoard = drive.trajectoryBuilder(PushPixelToMiddle.end(), true)
+                .lineToConstantHeading(new Vector2d(48, 35.5))
+                .build();
+        Trajectory MoveToLeftBoard = drive.trajectoryBuilder(PushPixelToLeft.end(), true)
+                .lineToConstantHeading(new Vector2d(48, 28))
                 .build();
 
         telemetry.addLine("Finished Building Trajectories");
@@ -79,6 +87,10 @@ public class BlueFar extends LinearOpMode {
             //sleep(500);
             drive.followTrajectory(GoToParkingSpotLeft);
 
+            sleep(1000);
+            drive.followTrajectory(MoveToLeftBoard);
+            robot.dropPixelOnBackboard();
+
 
         }
         else if (Math.round(objectLocation[0]) == 2) {
@@ -90,6 +102,10 @@ public class BlueFar extends LinearOpMode {
             sleep(500);
             //sleep(500);
             drive.followTrajectory(GoToParkingSpotRight);
+
+            sleep(1000);
+            drive.followTrajectory(MoveToRightBoard);
+            robot.dropPixelOnBackboard();
 
 
         }
@@ -103,12 +119,16 @@ public class BlueFar extends LinearOpMode {
             //sleep(500);
             drive.followTrajectory(GoToParkingSpotMiddle);
 
+            sleep(1000);
+            drive.followTrajectory(MoveToMiddleBoard);
+            robot.dropPixelOnBackboard();
+
 
         }
 
         OpVariableStorage.currentPose = drive.getPoseEstimate();
         OpVariableStorage.rotationChange = -0.5;
-        //OpVariableStorage.VFBPosition = robot.VFBLeft.getCurrentPosition();
+        OpVariableStorage.VFBPosition = robot.VFBLeft.getCurrentPosition();
 
         telemetry.addLine("End of Autonomous");
         telemetry.update();

@@ -5,14 +5,12 @@ import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.acmerobotics.roadrunner.trajectory.Trajectory;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.DcMotor;
 
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
 import org.firstinspires.ftc.teamcode.drive.advanced.OpVariableStorage;
 
-@Autonomous(name = "RedFarLine", group = "Iterative Opmode")
-public class RedFar extends LinearOpMode {
+@Autonomous(name = "RedFarPark", group = "Iterative Opmode")
+public class RedFarPark extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
         RobotHardware robot = new RobotHardware(hardwareMap, telemetry);
 
@@ -108,7 +106,7 @@ public class RedFar extends LinearOpMode {
 
         OpVariableStorage.currentPose = drive.getPoseEstimate();
         OpVariableStorage.rotationChange = 0.5;
-        //OpVariableStorage.VFBPosition = robot.VFBLeft.getCurrentPosition();
+        OpVariableStorage.VFBPosition = robot.VFBLeft.getCurrentPosition();
 
         telemetry.addLine("End of Autonomous");
         telemetry.update();
