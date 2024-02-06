@@ -21,35 +21,35 @@ public class RedFar extends LinearOpMode {
 
         // Build roadrunner trajectories
 
-        Pose2d startPose = new Pose2d(-35.5, -61.44, Math.toRadians(90));
+        Pose2d startPose = new Pose2d(-35.34, -61.26, Math.toRadians(90));
 
         drive.setPoseEstimate(startPose);
 
         Trajectory PushPixelToRight = drive.trajectoryBuilder(startPose)
-                .lineToConstantHeading(new Vector2d(-39 - 24, -33.3))
+                .lineToConstantHeading(new Vector2d(-32 - 24, -38))
                 .build();
         Trajectory PushPixelToMiddle = drive.trajectoryBuilder(startPose)
-                .lineToConstantHeading(new Vector2d(-18.4 - 24, -34.4))
+                .lineToConstantHeading(new Vector2d(-18.4 - 24, -34))
                 .build();
         Trajectory PushPixelToLeft = drive.trajectoryBuilder(startPose)
-                .forward(15)
-                .splineTo(new Vector2d(-11.3 - 24, -32.3), Math.toRadians(45))
+                .lineToConstantHeading(new Vector2d(-15 - 24, -47))
+                .splineTo(new Vector2d(-12 - 24, -31), Math.toRadians(45))
                 .build();
 
         Trajectory GoToParkingSpotRight = drive.trajectoryBuilder(PushPixelToRight.end(), true)
-                .strafeTo(new Vector2d(-55, -55))
-                .splineToConstantHeading(new Vector2d(-60, -30), Math.toRadians(90))
+                .splineToConstantHeading(new Vector2d(-33, -50), Math.toRadians(90))
+                .splineToConstantHeading(new Vector2d(-30, -18), Math.toRadians(90))
                 .splineToSplineHeading(new Pose2d(-30, -9, Math.toRadians(180)), Math.toRadians(0))
                 .splineToConstantHeading(new Vector2d(55, -9), Math.toRadians(0))
                 .build();
         Trajectory GoToParkingSpotMiddle = drive.trajectoryBuilder(PushPixelToMiddle.end(), true)
-                .strafeTo(new Vector2d(-50, -50))
+                .strafeTo(new Vector2d(-53, -45))
                 .splineToConstantHeading(new Vector2d(-55, -30), Math.toRadians(90))
-                .splineToSplineHeading(new Pose2d(-30, -9, Math.toRadians(180)), Math.toRadians(0))
+                .splineToSplineHeading(new Pose2d(-35, -9, Math.toRadians(180)), Math.toRadians(0))
                 .splineToConstantHeading(new Vector2d(55, -9), Math.toRadians(0))
                 .build();
         Trajectory GoToParkingSpotLeft = drive.trajectoryBuilder(PushPixelToLeft.end(), true)
-                .strafeTo(new Vector2d(-45, 55))
+                .strafeTo(new Vector2d(-45, -55))
                 .splineToConstantHeading(new Vector2d(-50, -30), Math.toRadians(90))
                 .splineToSplineHeading(new Pose2d(-30, -9, Math.toRadians(180)), Math.toRadians(0))
                 .splineToConstantHeading(new Vector2d(55, -9), Math.toRadians(0))
@@ -67,21 +67,9 @@ public class RedFar extends LinearOpMode {
 
         // Find where the team object is, move, and place pixel
 
-        double[] objectLocation = robot.findTeamObjectPixels(new int[]{1});
+        double[] objectLocation = robot.findTeamObjectPixels(new int[]{2});
 
-        if (Math.round(objectLocation[0]) == 2) {
-            telemetry.addLine("Object at right");
-            telemetry.addData("Confidence: ", objectLocation[1]);
-            telemetry.update();
-
-            drive.followTrajectory(PushPixelToLeft);
-            sleep(500);
-            //sleep(500);
-            drive.followTrajectory(GoToParkingSpotLeft);
-
-
-        }
-        else if (Math.round(objectLocation[0]) == 0) {
+        if (Math.round(objectLocation[0]) == 0) {
             telemetry.addLine("Object at left");
             telemetry.addData("Confidence: ", objectLocation[1]);
             telemetry.update();
@@ -90,6 +78,18 @@ public class RedFar extends LinearOpMode {
             sleep(500);
             //sleep(500);
             drive.followTrajectory(GoToParkingSpotRight);
+
+
+        }
+        else if (Math.round(objectLocation[0]) == 2) {
+            telemetry.addLine("Object at right");
+            telemetry.addData("Confidence: ", objectLocation[1]);
+            telemetry.update();
+
+            drive.followTrajectory(PushPixelToLeft);
+            sleep(500);
+            //sleep(500);
+            drive.followTrajectory(GoToParkingSpotLeft);
 
 
         }

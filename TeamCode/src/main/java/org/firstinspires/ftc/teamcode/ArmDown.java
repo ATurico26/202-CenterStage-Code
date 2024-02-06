@@ -105,7 +105,6 @@ public class ArmDown extends LinearOpMode {
             }
 
 
-
             telemetry.addLine(" ");
             if (HuskyIDCheck == 0) telemetry.addLine("Both colors");
             else if (HuskyIDCheck == 1) telemetry.addLine("Red");

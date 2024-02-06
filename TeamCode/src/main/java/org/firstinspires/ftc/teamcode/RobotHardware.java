@@ -62,7 +62,7 @@ public class RobotHardware {
 
         // HuskyLens
         Camera = hardwareMap.get(HuskyLens.class, "HuskyLens");
-        telemetry.addData("HuskyLens active:", Camera.knock());
+        telemetry.addData("HuskyLens active:", Camera.knock()); // checks if husky lens is active
         Camera.selectAlgorithm(HuskyLens.Algorithm.COLOR_RECOGNITION);
 
 
