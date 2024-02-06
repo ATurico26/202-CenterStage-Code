@@ -46,6 +46,7 @@ public class BasicTeleOp extends LinearOpMode {
         //Starting Position
         myLocalizer.setPoseEstimate(OpVariableStorage.currentPose);
 
+        telemetry.addData("Last VFB Pos:", OpVariableStorage.VFBPosition);
         telemetry.addData("StartingPose:", OpVariableStorage.currentPose);
         if (AbsDrivingDirection == -0.5) telemetry.addLine("Starting on BLUE");
         else telemetry.addLine("Starting on RED");
@@ -132,9 +133,9 @@ public class BasicTeleOp extends LinearOpMode {
 
 
             // Intake
-            if (gamepad2.right_trigger > 0.05) robot.Intake.setPower(0.75 * gamepad2.right_trigger);
+            if (gamepad2.right_trigger > 0.05) robot.Intake.setPower(1 * gamepad2.right_trigger);
             else if (gamepad2.left_trigger > 0.05) robot.Intake.setPower(-1 * gamepad2.left_trigger);
-            else if (gamepad1.right_trigger > 0.05) robot.Intake.setPower(0.75 * gamepad1.right_trigger);
+            else if (gamepad1.right_trigger > 0.05) robot.Intake.setPower(1 * gamepad1.right_trigger);
             else robot.Intake.setPower(0);
 
 

@@ -97,7 +97,7 @@ public class RobotHardware {
         VFBLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
 
-        telemetry.addData("Status", "Robot Hardware Initialized");
+        telemetry.addLine("Robot Hardware Initialized");
         telemetry.update();
         this.map = hardwareMap;
 
