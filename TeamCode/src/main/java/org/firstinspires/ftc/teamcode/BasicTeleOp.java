@@ -149,7 +149,7 @@ public class BasicTeleOp extends LinearOpMode {
 
             // Claw
             if (gamepad2.y) robot.Claw.setPosition(0 + robot.ClawOffset);
-            else if (gamepad2.x) robot.Claw.setPosition(0.15 + robot.ClawOffset);
+            else if (gamepad2.x) robot.Claw.setPosition(0.2 + robot.ClawOffset);
 
 
             FrameRate = Math.round((1 / (mRuntime.time() - LastTime)) * 1000);

@@ -163,47 +163,6 @@ public class RobotHardware {
     }
 
 
-    public double[] findTeamObject(int[] idCheck) {
-        int interations = 50;
-        double averageXTotal = 0;
-        double averageYTotal = 0;
-        double averageHeightTotal = 0;
-        double averageWidthTotal = 0;
-        int totalObjects = 0;
-
-
-        for (int i = 0; i < interations; i++) {
-            HuskyLens.Block[] block = Camera.blocks();
-
-            for (HuskyLens.Block value : block) {
-                if (contains(idCheck, value.id)) {
-                    if ((value.x > 30 && value.x < 250 && value.y > 130 && value.y < 180) && ((double) Math.abs(value.height - value.width) / Math.max(value.height, value.width) < 0.5)) {
-                        totalObjects++;
-                        averageXTotal = averageXTotal + value.x;
-                        averageYTotal = averageYTotal + value.y;
-                        averageHeightTotal = averageHeightTotal + value.height;
-                        averageWidthTotal = averageWidthTotal + value.width;
-                    }
-                }
-            }
-        }
-
-        averageXTotal = averageXTotal / totalObjects;
-        averageYTotal = averageYTotal / totalObjects;
-        averageHeightTotal = averageHeightTotal / totalObjects;
-        averageWidthTotal = averageWidthTotal / totalObjects;
-
-
-        if ((averageXTotal > 50 && averageXTotal < 75 && averageYTotal > 150 && averageYTotal < 175) && (averageHeightTotal > 45 && averageHeightTotal < 80 && averageWidthTotal > 45 && averageWidthTotal < 80)) {
-            return new double[]{0, totalObjects}; // left
-        } else if ((averageXTotal > 205 && averageXTotal < 230 && averageYTotal > 135 && averageYTotal < 160) && (averageHeightTotal > 30 && averageHeightTotal < 80 && averageWidthTotal > 30 && averageWidthTotal < 80)) {
-            return new double[]{1, totalObjects}; // middle
-        } else {
-            return new double[]{2, totalObjects}; // right
-        }
-    }
-
-
     public double coincidingArea(double[] Tar, double[] Det) {
         double areaX = Math.min(Math.min(Tar[0] + Tar[3] - Det[0], Det[0] + Det[3] - Tar[0]), Math.min(Tar[3], Det[3]));
         double areaY = Math.min(Math.min(Tar[1] + Tar[2] - Det[1], Det[1] + Det[2] - Tar[1]), Math.min(Tar[2], Det[2]));
@@ -234,7 +193,7 @@ public class RobotHardware {
             }
         }
 
-        if (CoincidingPixelsLeft < 100 * interations && CoincidingPixelsMiddle < 100 * interations) { // right
+        if (CoincidingPixelsLeft < 1500 * interations && CoincidingPixelsMiddle < 500 * interations) { // right
             return new double[]{2, (totalLeftPixels + totalMiddlePixels - CoincidingPixelsLeft - CoincidingPixelsMiddle) / (totalLeftPixels + totalMiddlePixels)};
         } else if (CoincidingPixelsLeft / totalLeftPixels >= CoincidingPixelsMiddle / totalMiddlePixels) {
             return new double[]{0, CoincidingPixelsLeft / totalLeftPixels}; // left
@@ -247,7 +206,7 @@ public class RobotHardware {
     public void dropPixelOnBackboard() {
         Claw.setPosition(0 + ClawOffset);
         methodSleep(250);
-        while (VFBLeft.getCurrentPosition() >= -3800) {
+        while (VFBLeft.getCurrentPosition() >= -3900) {
             VFBRight.setPower(-1);
             VFBLeft.setPower(-1);
         }
@@ -256,7 +215,7 @@ public class RobotHardware {
 
         //methodSleep(250);
 
-        Claw.setPosition(0.15 + ClawOffset);
+        Claw.setPosition(0.2 + ClawOffset);
         methodSleep(1000);
         Claw.setPosition(0 + ClawOffset);
         methodSleep(500);

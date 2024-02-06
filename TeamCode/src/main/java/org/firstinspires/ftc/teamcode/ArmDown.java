@@ -66,7 +66,7 @@ public class ArmDown extends LinearOpMode {
 
             // Claw
             if(gamepad2.y) robot.Claw.setPosition(0 + ClawOffset);
-            else if (gamepad2.x) robot.Claw.setPosition(0.15 + ClawOffset);
+            else if (gamepad2.x) robot.Claw.setPosition(0.2 + ClawOffset);
 
 
 
@@ -81,9 +81,9 @@ public class ArmDown extends LinearOpMode {
 
             // checks position of object like it would in autonomous
             if (gamepad1.y) { //  && !HuskyAutonomousCheck
-                if (HuskyIDCheck == 1) teamObjectLocation = robot.findTeamObjectPixels(new int[]{1, 2});
-                else if (HuskyIDCheck == 2) teamObjectLocation = robot.findTeamObjectPixels(new int[]{3, 4});
-                else teamObjectLocation = robot.findTeamObjectPixels(new int[]{1, 2, 3, 4});
+                if (HuskyIDCheck == 1) teamObjectLocation = robot.findTeamObjectPixels(new int[]{1});
+                else if (HuskyIDCheck == 2) teamObjectLocation = robot.findTeamObjectPixels(new int[]{2});
+                else teamObjectLocation = robot.findTeamObjectPixels(new int[]{1, 2});
                 // HuskyAutonomousCheck = true;
             } // else if (!gamepad1.y) HuskyAutonomousCheck = false;
 

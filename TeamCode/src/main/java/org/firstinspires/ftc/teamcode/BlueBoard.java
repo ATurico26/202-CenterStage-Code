@@ -19,32 +19,32 @@ public class BlueBoard extends LinearOpMode {
 
         // Build roadrunner trajectories
 
-        Pose2d startPose = new Pose2d(12, 61.44, Math.toRadians(90 + 180));
+        Pose2d startPose = new Pose2d(12, 61.44, Math.toRadians(270));
 
         drive.setPoseEstimate(startPose);
 
         Trajectory PushPixelToRight = drive.trajectoryBuilder(startPose)
-                .lineToConstantHeading(new Vector2d(32, 30.3))
+                .lineToConstantHeading(new Vector2d(31.5, 38))
                 .build();
         Trajectory PushPixelToMiddle = drive.trajectoryBuilder(startPose)
-                .lineToConstantHeading(new Vector2d(18.4, 34.4))
+                .lineToConstantHeading(new Vector2d(18.4, 34))
                 .build();
         Trajectory PushPixelToLeft = drive.trajectoryBuilder(startPose)
-                .forward(15)
-                .splineTo(new Vector2d(12.3, 32.3), Math.toRadians(135 + 90))
+                .lineToConstantHeading(new Vector2d(15, 47))
+                .splineTo(new Vector2d(12, 31), Math.toRadians(225))
                 .build();
 
         Trajectory MoveToRightBoard = drive.trajectoryBuilder(PushPixelToRight.end(), true)
-                .back(15)
-                .splineTo(new Vector2d(49, 41.5), Math.toRadians(0))
+                .back(5)
+                .splineTo(new Vector2d(48, 41.5), Math.toRadians(0))
                 .build();
         Trajectory MoveToMiddleBoard = drive.trajectoryBuilder(PushPixelToMiddle.end(), true)
-                .back(10)
-                .splineTo(new Vector2d(49, 35.1), Math.toRadians(0))
+                .lineToConstantHeading(new Vector2d(18.4, 36))
+                .splineTo(new Vector2d(48, 35.5), Math.toRadians(0))
                 .build();
         Trajectory MoveToLeftBoard = drive.trajectoryBuilder(PushPixelToLeft.end(), true)
                 .back(10)
-                .splineTo(new Vector2d(49, 27), Math.toRadians(0))
+                .splineTo(new Vector2d(48, 28), Math.toRadians(0))
                 .build();
 
         Trajectory GoToParkingSpotRight = drive.trajectoryBuilder(MoveToRightBoard.end())
@@ -69,24 +69,9 @@ public class BlueBoard extends LinearOpMode {
 
         // Find where the team object is, move, and place pixel
 
-        double[] objectLocation = robot.findTeamObjectPixels(new int[]{3, 4});
+        double[] objectLocation = robot.findTeamObjectPixels(new int[]{2});
 
-        if (Math.round(objectLocation[0]) == 2) {
-            telemetry.addLine("Object at right");
-            telemetry.addData("Confidence: ", objectLocation[1]);
-            telemetry.update();
-
-            drive.followTrajectory(PushPixelToLeft);
-            sleep(500);
-            drive.followTrajectory(MoveToLeftBoard);
-            //sleep(500);
-            robot.dropPixelOnBackboard();
-            //sleep(500);
-            drive.followTrajectory(GoToParkingSpotLeft);
-
-
-        }
-        else if (Math.round(objectLocation[0]) == 1) {
+        if (Math.round(objectLocation[0]) == 0) {
             telemetry.addLine("Object at left");
             telemetry.addData("Confidence: ", objectLocation[1]);
             telemetry.update();
@@ -98,6 +83,21 @@ public class BlueBoard extends LinearOpMode {
             robot.dropPixelOnBackboard();
             //sleep(500);
             drive.followTrajectory(GoToParkingSpotRight);
+
+
+        }
+        else if (Math.round(objectLocation[0]) == 2) {
+            telemetry.addLine("Object at right");
+            telemetry.addData("Confidence: ", objectLocation[1]);
+            telemetry.update();
+
+            drive.followTrajectory(PushPixelToLeft);
+            sleep(500);
+            drive.followTrajectory(MoveToLeftBoard);
+            //sleep(500);
+            robot.dropPixelOnBackboard();
+            //sleep(500);
+            drive.followTrajectory(GoToParkingSpotLeft);
 
 
         }
@@ -113,9 +113,6 @@ public class BlueBoard extends LinearOpMode {
             robot.dropPixelOnBackboard();
             //sleep(500);
             drive.followTrajectory(GoToParkingSpotMiddle);
-
-
-
 
         }
 

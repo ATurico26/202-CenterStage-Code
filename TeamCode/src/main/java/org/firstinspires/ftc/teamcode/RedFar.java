@@ -11,7 +11,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
 import org.firstinspires.ftc.teamcode.drive.advanced.OpVariableStorage;
 
-@Autonomous(name = "RedFar", group = "Iterative Opmode")
+@Autonomous(name = "RedFarLine", group = "Iterative Opmode")
 public class RedFar extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
         RobotHardware robot = new RobotHardware(hardwareMap, telemetry);
@@ -67,7 +67,7 @@ public class RedFar extends LinearOpMode {
 
         // Find where the team object is, move, and place pixel
 
-        double[] objectLocation = robot.findTeamObjectPixels(new int[]{1, 2});
+        double[] objectLocation = robot.findTeamObjectPixels(new int[]{1});
 
         if (Math.round(objectLocation[0]) == 2) {
             telemetry.addLine("Object at right");

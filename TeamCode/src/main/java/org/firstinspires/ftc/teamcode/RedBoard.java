@@ -24,27 +24,27 @@ public class RedBoard extends LinearOpMode {
         drive.setPoseEstimate(startPose);
 
         Trajectory PushPixelToRight = drive.trajectoryBuilder(startPose)
-                .lineToConstantHeading(new Vector2d(32, -30.3))
+                .lineToConstantHeading(new Vector2d(34, -38))
                 .build();
         Trajectory PushPixelToMiddle = drive.trajectoryBuilder(startPose)
-                .lineToConstantHeading(new Vector2d(18.4, -34.4))
+                .lineToConstantHeading(new Vector2d(18.4, -32.5))
                 .build();
         Trajectory PushPixelToLeft = drive.trajectoryBuilder(startPose)
-                .forward(15)
-                .splineTo(new Vector2d(12.3, -32.3), Math.toRadians(135))
+                .lineToConstantHeading(new Vector2d(15, -47))
+                .splineTo(new Vector2d(12, -31), Math.toRadians(135))
                 .build();
 
         Trajectory MoveToRightBoard = drive.trajectoryBuilder(PushPixelToRight.end(), true)
-                .back(15)
-                .splineTo(new Vector2d(49, -41.5), Math.toRadians(0))
+                .back(5)
+                .splineTo(new Vector2d(48, -41.5), Math.toRadians(0))
                 .build();
         Trajectory MoveToMiddleBoard = drive.trajectoryBuilder(PushPixelToMiddle.end(), true)
-                .back(10)
-                .splineTo(new Vector2d(49, -35.1), Math.toRadians(0))
+                .lineToConstantHeading(new Vector2d(18.4, -37))
+                .splineTo(new Vector2d(48, -35.5), Math.toRadians(0))
                 .build();
         Trajectory MoveToLeftBoard = drive.trajectoryBuilder(PushPixelToLeft.end(), true)
                 .back(10)
-                .splineTo(new Vector2d(49, -27), Math.toRadians(0))
+                .splineTo(new Vector2d(48, -28), Math.toRadians(0))
                 .build();
 
         Trajectory GoToParkingSpotRight = drive.trajectoryBuilder(MoveToRightBoard.end())
@@ -69,7 +69,7 @@ public class RedBoard extends LinearOpMode {
 
         // Find where the team object is, move, and place pixel
 
-        double[] objectLocation = robot.findTeamObjectPixels(new int[]{1, 2});
+        double[] objectLocation = robot.findTeamObjectPixels(new int[]{1});
 
         if (Math.round(objectLocation[0]) == 0) {
             telemetry.addLine("Object at left");
@@ -113,9 +113,6 @@ public class RedBoard extends LinearOpMode {
             robot.dropPixelOnBackboard();
             //sleep(500);
             drive.followTrajectory(GoToParkingSpotMiddle);
-
-
-
 
         }
 
