@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode;
 
-
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Gamepad;
@@ -25,10 +24,10 @@ public class BasicTeleOp extends LinearOpMode {
 
         ElapsedTime mRuntime = new ElapsedTime(ElapsedTime.Resolution.MILLISECONDS);
         double LastTime = mRuntime.time();
-        double LastTimeInterval = mRuntime.time();
 
 
         double VFBPower = 0;
+        double VFBOffset = OpVariableStorage.VFBPosition;
         double RelativeRotation = 0; // Rotation relative to starting rotation
         double AbsoluteX = 0;
         double AbsoluteY = 0;
@@ -36,6 +35,10 @@ public class BasicTeleOp extends LinearOpMode {
         double TurnControl = 0;
         double AbsDrivingDirection = OpVariableStorage.rotationChange;
         double FrameRate = 0;
+
+        // temporary TurnControl PID
+        double PIDVar = 0; // 0 = kp, 1 = ki, 2 = kd
+        double PIDChangeIncrement = 0.01;
 
 
         // RoadRunner
@@ -59,8 +62,6 @@ public class BasicTeleOp extends LinearOpMode {
 
         while (opModeIsActive() && !isStopRequested()) {
 
-            LastTimeInterval = mRuntime.time();
-
             // Get Current Pose from Road Runner
             myLocalizer.update();
             Pose2d myPose = myLocalizer.getPoseEstimate();
@@ -82,51 +83,53 @@ public class BasicTeleOp extends LinearOpMode {
 
             // Auto rotate to face VFB towards the board
             if (gamepad1.right_stick_button) {
-                if (AbsDrivingDirection == 0.5) { // red
-                    if (RelativeRotation > -0.35 && RelativeRotation < 0.5) TurnControl = -1;
-                    else if (RelativeRotation <= -0.35 && RelativeRotation > -0.45) TurnControl = -0.2;
-                    else if (RelativeRotation <= -0.45 && RelativeRotation > -0.55) TurnControl = 0; //stop turning
-                    else if (RelativeRotation <= -0.55 && RelativeRotation > -0.65) TurnControl = 0.2;
-                    else TurnControl = 1;
-                } else { // blue
-                    if (RelativeRotation < 0.35 && RelativeRotation > -0.5) TurnControl = -1;
-                    else if (RelativeRotation >= 0.35 && RelativeRotation < 0.45) TurnControl = -0.2;
-                    else if (RelativeRotation >= 0.45 && RelativeRotation < 0.55) TurnControl = 0; //stop turning
-                    else if (RelativeRotation >= 0.55 && RelativeRotation < 0.65) TurnControl = 0.2;
-                    else TurnControl = 1;
-                }
-            } else TurnControl = Math.abs(gamepad1.left_stick_x) * gamepad1.left_stick_x;
+                TurnControl = robot.PosPID(robot.angleDifference(Math.toDegrees(myPose.getHeading()), 180), 0);
+            } else TurnControl = Math.pow(gamepad1.left_stick_x, 3); // Math.abs(gamepad1.left_stick_x) * gamepad1.left_stick_x
 
             robot.driveWithControllers(AbsoluteX, AbsoluteY, TurnControl * (1 - 0.4 * gamepad1.left_trigger), 1 - 0.6 * gamepad1.left_trigger);
 
 
+            // temporary TurnControl PID
+            if (gamepad1.left_bumper) PIDChangeIncrement = 0.5;
+            else PIDChangeIncrement = 0.01;
+
             // Reset Absolute Driving encoders
             if (gamepad1.dpad_right && !AbsoluteSetting) { // Align absolute driving to red side
-                //myLocalizer.setPoseEstimate(new Pose2d(myPose.getX(), myPose.getY(), Math.toRadians(180)));
-                AbsDrivingDirection = 0.5;
+                PIDVar = PIDVar + 1;
+                if (PIDVar > 2) PIDVar = 0;
+                //AbsDrivingDirection = 0.5;
                 AbsoluteSetting = true;
             } else if (gamepad1.dpad_left && !AbsoluteSetting) { // Align absolute driving to blue side
-                //myLocalizer.setPoseEstimate(new Pose2d(myPose.getX(), myPose.getY(), Math.toRadians(0)));
-                AbsDrivingDirection = -0.5;
+                PIDVar = PIDVar - 1;
+                if (PIDVar < 0) PIDVar = 2;
+                //AbsDrivingDirection = -0.5;
                 AbsoluteSetting = true;
             } else if (gamepad1.dpad_up && !AbsoluteSetting) { // emergency set current heading to 0
-                myLocalizer.setPoseEstimate(new Pose2d(myPose.getX(), myPose.getY(), Math.toRadians(0)));
-                AbsoluteSetting = true;
+                if (PIDVar == 0) robot.PosKp = Math.round((robot.PosKp + PIDChangeIncrement) * 100.0) / 100.0;
+                else if (PIDVar == 1) robot.PosKi = Math.round((robot.PosKi + PIDChangeIncrement) * 100.0) / 100.0;
+                else if (PIDVar == 2) robot.PosKd = Math.round((robot.PosKd + PIDChangeIncrement) * 100.0) / 100.0;
+
+                //myLocalizer.setPoseEstimate(new Pose2d(myPose.getX(), myPose.getY(), Math.toRadians(180)));
+                if (gamepad1.left_trigger > 0.2) AbsoluteSetting = true;
             } if (gamepad1.dpad_down) {
-                AbsoluteSetting = true;
+                if (PIDVar == 0 && robot.PosKp > 0) robot.PosKp = Math.round((robot.PosKp - PIDChangeIncrement) * 100.0) / 100.0;
+                else if (PIDVar == 1 && robot.PosKi > 0) robot.PosKi = Math.round((robot.PosKi - PIDChangeIncrement) * 100.0) / 100.0;
+                else if (PIDVar == 2 && robot.PosKd > 0) robot.PosKd = Math.round((robot.PosKd - PIDChangeIncrement) * 100.0) / 100.0;
+
+                if (gamepad1.left_trigger > 0.2) AbsoluteSetting = true;
             } else if (!gamepad1.dpad_up && !gamepad1.dpad_right && !gamepad1.dpad_left && !gamepad1.dpad_down) AbsoluteSetting = false;
 
 
             // Virtual Four Bar
 
             //Initial Set Power
-            if (gamepad2.right_stick_y < 0 && robot.VFBLeft.getCurrentPosition() > -4000) VFBPower = (-1 * Math.abs(Math.pow(gamepad2.right_stick_y, 3)));
-            else if (gamepad2.right_stick_y >= 0 && robot.VFBLeft.getCurrentPosition() < 0) VFBPower = (1 * Math.abs(Math.pow(gamepad2.right_stick_y, 3)));
+            if (gamepad2.right_stick_y < 0 && (robot.VFBLeft.getCurrentPosition() + VFBOffset) > -4000) VFBPower = (-1 * Math.abs(Math.pow(gamepad2.right_stick_y, 3)));
+            else if (gamepad2.right_stick_y >= 0 && (robot.VFBLeft.getCurrentPosition() + VFBOffset) < 0) VFBPower = (1 * Math.abs(Math.pow(gamepad2.right_stick_y, 3)));
             else VFBPower = 0;
 
             //Stop power in direction that will break claw
-            if (robot.Claw.getPosition() >= 0.1 + robot.ClawOffset && (robot.VFBLeft.getCurrentPosition() <= -500 && robot.VFBLeft.getCurrentPosition() >= -1800) && VFBPower < 0) VFBPower = 0;
-            else if (robot.Claw.getPosition() >= 0.1 + robot.ClawOffset && (robot.VFBLeft.getCurrentPosition() <= -1800 && robot.VFBLeft.getCurrentPosition() >= -3000) && VFBPower > 0) VFBPower = 0;
+            if (robot.Claw.getPosition() >= 0.1 + robot.ClawOffset && ((robot.VFBLeft.getCurrentPosition() + VFBOffset) <= -600 && (robot.VFBLeft.getCurrentPosition() + VFBOffset) >= -1800) && VFBPower < 0) VFBPower = 0;
+            else if (robot.Claw.getPosition() >= 0.1 + robot.ClawOffset && ((robot.VFBLeft.getCurrentPosition() + VFBOffset) <= -1800 && (robot.VFBLeft.getCurrentPosition() + VFBOffset) >= -3100) && VFBPower > 0) VFBPower = 0;
 
             robot.VFBRight.setPower(VFBPower);
             robot.VFBLeft.setPower(VFBPower);
@@ -158,16 +161,19 @@ public class BasicTeleOp extends LinearOpMode {
             telemetry.addData("FPS:", FrameRate);
             telemetry.addData("MSPerFrame:", (mRuntime.time() - LastTime));
             LastTime = mRuntime.time();
-            telemetry.addData("MSPerInterval:", (mRuntime.time() - LastTimeInterval));
             telemetry.addData("X:", myPose.getX());
             telemetry.addData("Y:", myPose.getY());
             telemetry.addData("Heading:", Math.toDegrees(myPose.getHeading()));
             telemetry.addData("Relative Rotation:", (RelativeRotation * 180));
             telemetry.addData("Claw:", robot.Claw.getPosition());
-            telemetry.addData("VFB Pos:", robot.VFBLeft.getCurrentPosition());
+            telemetry.addData("VFB Pos:", (robot.VFBLeft.getCurrentPosition() + VFBOffset));
+            telemetry.addLine(" ");
+            telemetry.addData("TurnControl:", TurnControl);
+            if (PIDVar == 0) telemetry.addLine("Setting: Kp");
+            else if (PIDVar == 1) telemetry.addLine("Setting: Ki");
+            else if (PIDVar == 2) telemetry.addLine("Setting: Kd");
+            telemetry.addLine("Kp:" + robot.PosKp + " Ki:" + robot.PosKi + " Kd:" + robot.PosKd);
             telemetry.update();
         }
     }
 }
-
-

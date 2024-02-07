@@ -10,7 +10,6 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.drive.advanced.OpVariableStorage;
 
-import java.util.ArrayList;
 
 public class RobotHardware {
 
@@ -151,13 +150,6 @@ public class RobotHardware {
     }
 
 
-    public void VFBSetPosition(double position) {
-        double power = PosPID(position, VFBLeft.getCurrentPosition());
-        VFBRight.setPower(power);
-        VFBLeft.setPower(power);
-    }
-
-
     public boolean contains(final int[] array, final int key) {
         for (final int i : array) if (i == key) return true;
         return false;
@@ -206,7 +198,7 @@ public class RobotHardware {
 
     public void dropPixelOnBackboard() {
         Claw.setPosition(0 + ClawOffset);
-        methodSleep(250);
+
         while (VFBLeft.getCurrentPosition() >= -3900) {
             VFBRight.setPower(-1);
             VFBLeft.setPower(-1);
@@ -214,8 +206,6 @@ public class RobotHardware {
         }
         VFBRight.setPower(0);
         VFBLeft.setPower(0);
-
-        //methodSleep(250);
 
         Claw.setPosition(0.2 + ClawOffset);
         methodSleep(1000);

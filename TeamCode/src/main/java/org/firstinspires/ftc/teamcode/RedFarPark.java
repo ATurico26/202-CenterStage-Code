@@ -24,7 +24,7 @@ public class RedFarPark extends LinearOpMode {
         drive.setPoseEstimate(startPose);
 
         Trajectory PushPixelToRight = drive.trajectoryBuilder(startPose)
-                .lineToConstantHeading(new Vector2d(-32 - 24, -38))
+                .lineToConstantHeading(new Vector2d(-30 - 24, -38))
                 .build();
         Trajectory PushPixelToMiddle = drive.trajectoryBuilder(startPose)
                 .lineToConstantHeading(new Vector2d(-18.4 - 24, -34))
@@ -35,25 +35,30 @@ public class RedFarPark extends LinearOpMode {
                 .build();
 
         Trajectory GoToParkingSpotRight = drive.trajectoryBuilder(PushPixelToRight.end(), true)
-                .splineToConstantHeading(new Vector2d(-33, -50), Math.toRadians(90))
-                .splineToConstantHeading(new Vector2d(-30, -18), Math.toRadians(90))
+                .splineToConstantHeading(new Vector2d(-35, -50), Math.toRadians(0))
+                .splineToConstantHeading(new Vector2d(-35, -18), Math.toRadians(90))
                 .splineToSplineHeading(new Pose2d(-30, -9, Math.toRadians(180)), Math.toRadians(0))
-                .splineToConstantHeading(new Vector2d(55, -9), Math.toRadians(0))
+                .splineToConstantHeading(new Vector2d(50, -9), Math.toRadians(0))
                 .build();
         Trajectory GoToParkingSpotMiddle = drive.trajectoryBuilder(PushPixelToMiddle.end(), true)
                 .strafeTo(new Vector2d(-53, -45))
                 .splineToConstantHeading(new Vector2d(-55, -30), Math.toRadians(90))
                 .splineToSplineHeading(new Pose2d(-35, -9, Math.toRadians(180)), Math.toRadians(0))
-                .splineToConstantHeading(new Vector2d(55, -9), Math.toRadians(0))
+                .splineToConstantHeading(new Vector2d(50, -9), Math.toRadians(0))
                 .build();
         Trajectory GoToParkingSpotLeft = drive.trajectoryBuilder(PushPixelToLeft.end(), true)
-                .strafeTo(new Vector2d(-45, -55))
-                .splineToConstantHeading(new Vector2d(-50, -30), Math.toRadians(90))
+                .strafeTo(new Vector2d(-45, -40))
+                .splineToConstantHeading(new Vector2d(-45, -30), Math.toRadians(90))
                 .splineToSplineHeading(new Pose2d(-30, -9, Math.toRadians(180)), Math.toRadians(0))
-                .splineToConstantHeading(new Vector2d(55, -9), Math.toRadians(0))
+                .splineToConstantHeading(new Vector2d(50, -9), Math.toRadians(0))
                 .build();
 
         telemetry.addLine("Finished Building Trajectories");
+        double[] testHuskyLens = robot.findTeamObjectPixels(new int[]{1});
+        if (testHuskyLens[0] == 0) telemetry.addLine("Location: Left");
+        else if (testHuskyLens[0] == 1) telemetry.addLine("Location: Middle");
+        else if (testHuskyLens[0] == 2) telemetry.addLine("Location: Right");
+        telemetry.addData("Confidence: ", testHuskyLens[1]);
         telemetry.addLine("Ready");
         telemetry.update();
 
@@ -65,7 +70,7 @@ public class RedFarPark extends LinearOpMode {
 
         // Find where the team object is, move, and place pixel
 
-        double[] objectLocation = robot.findTeamObjectPixels(new int[]{2});
+        double[] objectLocation = robot.findTeamObjectPixels(new int[]{1});
 
         if (Math.round(objectLocation[0]) == 0) {
             telemetry.addLine("Object at left");

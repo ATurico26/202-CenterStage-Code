@@ -40,7 +40,7 @@ public class BlueBoard extends LinearOpMode {
                 .build();
         Trajectory MoveToMiddleBoard = drive.trajectoryBuilder(PushPixelToMiddle.end(), true)
                 .lineToConstantHeading(new Vector2d(18.4, 36))
-                .splineTo(new Vector2d(48, 35.5), Math.toRadians(0))
+                .splineTo(new Vector2d(48, 36), Math.toRadians(0))
                 .build();
         Trajectory MoveToLeftBoard = drive.trajectoryBuilder(PushPixelToLeft.end(), true)
                 .back(10)
@@ -58,6 +58,11 @@ public class BlueBoard extends LinearOpMode {
                 .build();
 
         telemetry.addLine("Finished Building Trajectories");
+        double[] testHuskyLens = robot.findTeamObjectPixels(new int[]{2});
+        if (testHuskyLens[0] == 0) telemetry.addLine("Location: Left");
+        else if (testHuskyLens[0] == 1) telemetry.addLine("Location: Middle");
+        else if (testHuskyLens[0] == 2) telemetry.addLine("Location: Right");
+        telemetry.addData("Confidence: ", testHuskyLens[1]);
         telemetry.addLine("Ready");
         telemetry.update();
 

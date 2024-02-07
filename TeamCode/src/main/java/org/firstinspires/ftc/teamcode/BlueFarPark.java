@@ -35,25 +35,30 @@ public class BlueFarPark extends LinearOpMode {
                 .build();
 
         Trajectory GoToParkingSpotRight = drive.trajectoryBuilder(PushPixelToRight.end(), true)
-                .splineToConstantHeading(new Vector2d(-33, 50), Math.toRadians(270))
-                .splineToConstantHeading(new Vector2d(-30, 18), Math.toRadians(270))
+                .splineToConstantHeading(new Vector2d(-35, 50), Math.toRadians(0))
+                .splineToConstantHeading(new Vector2d(-35, 18), Math.toRadians(270))
                 .splineToSplineHeading(new Pose2d(-30, 9, Math.toRadians(180)), Math.toRadians(0))
-                .splineToConstantHeading(new Vector2d(55, 9), Math.toRadians(0))
+                .splineToConstantHeading(new Vector2d(50, 9), Math.toRadians(0))
                 .build();
         Trajectory GoToParkingSpotMiddle = drive.trajectoryBuilder(PushPixelToMiddle.end(), true)
                 .strafeTo(new Vector2d(-53, 45))
                 .splineToConstantHeading(new Vector2d(-55, 30), Math.toRadians(270))
                 .splineToSplineHeading(new Pose2d(-35, 9, Math.toRadians(180)), Math.toRadians(0))
-                .splineToConstantHeading(new Vector2d(55, 9), Math.toRadians(0))
+                .splineToConstantHeading(new Vector2d(50, 9), Math.toRadians(0))
                 .build();
         Trajectory GoToParkingSpotLeft = drive.trajectoryBuilder(PushPixelToLeft.end(), true)
-                .strafeTo(new Vector2d(-45, 55))
-                .splineToConstantHeading(new Vector2d(-50, 30), Math.toRadians(270))
+                .strafeTo(new Vector2d(-45, 40))
+                .splineToConstantHeading(new Vector2d(-45, 30), Math.toRadians(270))
                 .splineToSplineHeading(new Pose2d(-30, 9, Math.toRadians(180)), Math.toRadians(0))
-                .splineToConstantHeading(new Vector2d(55, 9), Math.toRadians(0))
+                .splineToConstantHeading(new Vector2d(50, 9), Math.toRadians(0))
                 .build();
 
         telemetry.addLine("Finished Building Trajectories");
+        double[] testHuskyLens = robot.findTeamObjectPixels(new int[]{2});
+        if (testHuskyLens[0] == 0) telemetry.addLine("Location: Left");
+        else if (testHuskyLens[0] == 1) telemetry.addLine("Location: Middle");
+        else if (testHuskyLens[0] == 2) telemetry.addLine("Location: Right");
+        telemetry.addData("Confidence: ", testHuskyLens[1]);
         telemetry.addLine("Ready");
         telemetry.update();
 

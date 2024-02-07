@@ -5,6 +5,7 @@ import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.acmerobotics.roadrunner.trajectory.Trajectory;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
 import org.firstinspires.ftc.teamcode.drive.advanced.OpVariableStorage;
@@ -24,7 +25,7 @@ public class RedBoard extends LinearOpMode {
         drive.setPoseEstimate(startPose);
 
         Trajectory PushPixelToRight = drive.trajectoryBuilder(startPose)
-                .lineToConstantHeading(new Vector2d(34, -38))
+                .lineToConstantHeading(new Vector2d(31.5, -38))
                 .build();
         Trajectory PushPixelToMiddle = drive.trajectoryBuilder(startPose)
                 .lineToConstantHeading(new Vector2d(18.4, -32.5))
@@ -58,6 +59,11 @@ public class RedBoard extends LinearOpMode {
                 .build();
 
         telemetry.addLine("Finished Building Trajectories");
+        double[] testHuskyLens = robot.findTeamObjectPixels(new int[]{1});
+        if (testHuskyLens[0] == 0) telemetry.addLine("Location: Left");
+        else if (testHuskyLens[0] == 1) telemetry.addLine("Location: Middle");
+        else if (testHuskyLens[0] == 2) telemetry.addLine("Location: Right");
+        telemetry.addData("Confidence: ", testHuskyLens[1]);
         telemetry.addLine("Ready");
         telemetry.update();
 
