@@ -35,14 +35,25 @@ public class RobotHardware {
     public double ClawOffset = 0;
 
 
-    // VFB Position PID variables
+    // TurnControl PID variables
     double PosIntegralSum = 0;
-    double PosKp = 0;
+    double PosKp = 0.015;
     double PosKi = 0;
     double PosKd = 0;
     private double PosLastError = 0;
 
     ElapsedTime PIDtimer = new ElapsedTime();
+
+
+
+    // VFB Hanging PID variables
+    double VFBIntegralSum = 0;
+    double VFBKp = 0.009;
+    double VFBKi = 0;
+    double VFBKd = 0;
+    private double VFBLastError = 0;
+
+    ElapsedTime VFBPIDtimer = new ElapsedTime();
 
 
     public RobotHardware(HardwareMap hardwareMap, Telemetry telemetry) {
@@ -147,6 +158,18 @@ public class RobotHardware {
         PIDtimer.reset();
 
         return (PosError * PosKp) + (PosDerivative * PosKd) + (PosIntegralSum * PosKi);
+    }
+
+
+    public double VFBPID(double VFBReference, double VFBState) {
+        double VFBError = VFBReference - VFBState;
+        VFBIntegralSum += VFBError * VFBPIDtimer.seconds();
+        double VFBDerivative = (VFBError - VFBLastError) / VFBPIDtimer.seconds();
+        VFBLastError = VFBError;
+
+        VFBPIDtimer.reset();
+
+        return (VFBError * VFBKp) + (VFBDerivative * VFBKd) + (VFBIntegralSum * VFBKi);
     }
 
 

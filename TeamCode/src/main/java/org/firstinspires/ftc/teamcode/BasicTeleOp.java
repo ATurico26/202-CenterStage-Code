@@ -29,6 +29,8 @@ public class BasicTeleOp extends LinearOpMode {
         double VFBPower = 0;
         double VFBOffset = OpVariableStorage.VFBPosition;
         double RelativeRotation = 0; // Rotation relative to starting rotation
+        boolean VFBLimiters = true;
+        boolean VFBSetting = false;
         double AbsoluteX = 0;
         double AbsoluteY = 0;
         boolean AbsoluteSetting = false;
@@ -37,8 +39,8 @@ public class BasicTeleOp extends LinearOpMode {
         double FrameRate = 0;
 
         // temporary TurnControl PID
-        double PIDVar = 0; // 0 = kp, 1 = ki, 2 = kd
-        double PIDChangeIncrement = 0.01;
+        //double PIDVar = 0; // 0 = kp, 1 = ki, 2 = kd
+        //double PIDChangeIncrement = 0.01;
 
 
         // RoadRunner
@@ -83,56 +85,84 @@ public class BasicTeleOp extends LinearOpMode {
 
             // Auto rotate to face VFB towards the board
             if (gamepad1.right_stick_button) {
-                TurnControl = robot.PosPID(robot.angleDifference(Math.toDegrees(myPose.getHeading()), 180), 0);
+                TurnControl = -1 * robot.PosPID(robot.angleDifference(Math.toDegrees(myPose.getHeading()), 180), 0);
             } else TurnControl = Math.pow(gamepad1.left_stick_x, 3); // Math.abs(gamepad1.left_stick_x) * gamepad1.left_stick_x
 
             robot.driveWithControllers(AbsoluteX, AbsoluteY, TurnControl * (1 - 0.4 * gamepad1.left_trigger), 1 - 0.6 * gamepad1.left_trigger);
 
 
             // temporary TurnControl PID
-            if (gamepad1.left_bumper) PIDChangeIncrement = 0.5;
-            else PIDChangeIncrement = 0.01;
+            //if (gamepad1.left_bumper) PIDChangeIncrement = 0.01;
+            //else PIDChangeIncrement = 0.0001;
 
             // Reset Absolute Driving encoders
             if (gamepad1.dpad_right && !AbsoluteSetting) { // Align absolute driving to red side
-                PIDVar = PIDVar + 1;
-                if (PIDVar > 2) PIDVar = 0;
-                //AbsDrivingDirection = 0.5;
+                //PIDVar = PIDVar + 1;
+                //if (PIDVar > 2) PIDVar = 0;
+                AbsDrivingDirection = 0.5;
                 AbsoluteSetting = true;
             } else if (gamepad1.dpad_left && !AbsoluteSetting) { // Align absolute driving to blue side
-                PIDVar = PIDVar - 1;
-                if (PIDVar < 0) PIDVar = 2;
-                //AbsDrivingDirection = -0.5;
+                //PIDVar = PIDVar - 1;
+                //if (PIDVar < 0) PIDVar = 2;
+                AbsDrivingDirection = -0.5;
                 AbsoluteSetting = true;
             } else if (gamepad1.dpad_up && !AbsoluteSetting) { // emergency set current heading to 0
-                if (PIDVar == 0) robot.PosKp = Math.round((robot.PosKp + PIDChangeIncrement) * 100.0) / 100.0;
-                else if (PIDVar == 1) robot.PosKi = Math.round((robot.PosKi + PIDChangeIncrement) * 100.0) / 100.0;
-                else if (PIDVar == 2) robot.PosKd = Math.round((robot.PosKd + PIDChangeIncrement) * 100.0) / 100.0;
+                //if (PIDVar == 0) robot.VFBKp = (robot.VFBKp + PIDChangeIncrement);
+                //else if (PIDVar == 1) robot.VFBKi = (robot.VFBKi + PIDChangeIncrement);
+                //else if (PIDVar == 2) robot.VFBKd = (robot.VFBKd + PIDChangeIncrement);
 
-                //myLocalizer.setPoseEstimate(new Pose2d(myPose.getX(), myPose.getY(), Math.toRadians(180)));
-                if (gamepad1.left_trigger > 0.2) AbsoluteSetting = true;
+                myLocalizer.setPoseEstimate(new Pose2d(myPose.getX(), myPose.getY(), Math.toRadians(180)));
+                //if (gamepad1.left_trigger > 0.2)
+                AbsoluteSetting = true;
             } if (gamepad1.dpad_down) {
-                if (PIDVar == 0 && robot.PosKp > 0) robot.PosKp = Math.round((robot.PosKp - PIDChangeIncrement) * 100.0) / 100.0;
-                else if (PIDVar == 1 && robot.PosKi > 0) robot.PosKi = Math.round((robot.PosKi - PIDChangeIncrement) * 100.0) / 100.0;
-                else if (PIDVar == 2 && robot.PosKd > 0) robot.PosKd = Math.round((robot.PosKd - PIDChangeIncrement) * 100.0) / 100.0;
+                //if (PIDVar == 0 && robot.VFBKp > 0) robot.VFBKp = (robot.VFBKp - PIDChangeIncrement);
+                //else if (PIDVar == 1 && robot.VFBKi > 0) robot.VFBKi = (robot.VFBKi - PIDChangeIncrement);
+                //else if (PIDVar == 2 && robot.VFBKd > 0) robot.VFBKd = (robot.VFBKd - PIDChangeIncrement);
 
-                if (gamepad1.left_trigger > 0.2) AbsoluteSetting = true;
+                //if (gamepad1.left_trigger > 0.2)
+                AbsoluteSetting = true;
             } else if (!gamepad1.dpad_up && !gamepad1.dpad_right && !gamepad1.dpad_left && !gamepad1.dpad_down) AbsoluteSetting = false;
 
 
             // Virtual Four Bar
 
-            //Initial Set Power
-            if (gamepad2.right_stick_y < 0 && (robot.VFBLeft.getCurrentPosition() + VFBOffset) > -4000) VFBPower = (-1 * Math.abs(Math.pow(gamepad2.right_stick_y, 3)));
-            else if (gamepad2.right_stick_y >= 0 && (robot.VFBLeft.getCurrentPosition() + VFBOffset) < 0) VFBPower = (1 * Math.abs(Math.pow(gamepad2.right_stick_y, 3)));
-            else VFBPower = 0;
+            VFBLimiters = !gamepad2.left_bumper;
+            if (VFBLimiters) {
+                if (gamepad2.dpad_right) { // use PID for hanging
+                    VFBPower = robot.VFBPID(-780, robot.VFBLeft.getCurrentPosition());
 
-            //Stop power in direction that will break claw
-            if (robot.Claw.getPosition() >= 0.1 + robot.ClawOffset && ((robot.VFBLeft.getCurrentPosition() + VFBOffset) <= -600 && (robot.VFBLeft.getCurrentPosition() + VFBOffset) >= -1800) && VFBPower < 0) VFBPower = 0;
-            else if (robot.Claw.getPosition() >= 0.1 + robot.ClawOffset && ((robot.VFBLeft.getCurrentPosition() + VFBOffset) <= -1800 && (robot.VFBLeft.getCurrentPosition() + VFBOffset) >= -3100) && VFBPower > 0) VFBPower = 0;
+                } else {
+                    robot.VFBPIDtimer.reset(); // prevent PID from freaking out when not active
+
+
+                    //Set power normally with limiters
+                    if (gamepad2.right_stick_y < 0 && (robot.VFBLeft.getCurrentPosition() + VFBOffset) > -4000) VFBPower = (-1 * Math.abs(Math.pow(gamepad2.right_stick_y, 3)));
+                    else if (gamepad2.right_stick_y >= 0 && (robot.VFBLeft.getCurrentPosition() + VFBOffset) < 0) VFBPower = (1 * Math.abs(Math.pow(gamepad2.right_stick_y, 3)));
+                    else VFBPower = 0;
+                }
+                //Stop power in direction that will break claw
+                if (robot.Claw.getPosition() >= 0.1 + robot.ClawOffset && ((robot.VFBLeft.getCurrentPosition() + VFBOffset) <= -600 && (robot.VFBLeft.getCurrentPosition() + VFBOffset) >= -1800) && VFBPower < 0) VFBPower = 0;
+                else if (robot.Claw.getPosition() >= 0.1 + robot.ClawOffset && ((robot.VFBLeft.getCurrentPosition() + VFBOffset) <= -1800 && (robot.VFBLeft.getCurrentPosition() + VFBOffset) >= -3100) && VFBPower > 0) VFBPower = 0;
+
+
+            } else {
+                robot.VFBPIDtimer.reset(); // prevent PID from freaking out when not active
+
+                // VFB power without limiters
+                if (gamepad2.right_stick_y < 0) VFBPower = (-1 * Math.abs(Math.pow(gamepad2.right_stick_y, 3)));
+                else if (gamepad2.right_stick_y > 0) VFBPower = (1 * Math.abs(Math.pow(gamepad2.right_stick_y, 3)));
+                else VFBPower = 0;
+            }
 
             robot.VFBRight.setPower(VFBPower);
             robot.VFBLeft.setPower(VFBPower);
+
+            // Reset VFB Position
+            if (gamepad2.dpad_up && !VFBSetting) { // Reset Current VFB Position to 0
+                VFBOffset = -1 * robot.VFBLeft.getCurrentPosition();
+                VFBSetting = true;
+            } else if (!gamepad2.dpad_up) VFBSetting = false;
+
 
 
             // Intake
@@ -167,12 +197,15 @@ public class BasicTeleOp extends LinearOpMode {
             telemetry.addData("Relative Rotation:", (RelativeRotation * 180));
             telemetry.addData("Claw:", robot.Claw.getPosition());
             telemetry.addData("VFB Pos:", (robot.VFBLeft.getCurrentPosition() + VFBOffset));
-            telemetry.addLine(" ");
-            telemetry.addData("TurnControl:", TurnControl);
-            if (PIDVar == 0) telemetry.addLine("Setting: Kp");
-            else if (PIDVar == 1) telemetry.addLine("Setting: Ki");
-            else if (PIDVar == 2) telemetry.addLine("Setting: Kd");
-            telemetry.addLine("Kp:" + robot.PosKp + " Ki:" + robot.PosKi + " Kd:" + robot.PosKd);
+            if (!VFBLimiters) telemetry.addLine("VFB Limiters disabled");
+            //telemetry.addLine(" ");
+            //telemetry.addData("VFBPower:", VFBPower);
+            //if (PIDVar == 0) telemetry.addLine("Setting: Kp");
+            //else if (PIDVar == 1) telemetry.addLine("Setting: Ki");
+            //else if (PIDVar == 2) telemetry.addLine("Setting: Kd");
+            //telemetry.addData("Kp: ", robot.VFBKp);
+            //telemetry.addData("Ki: ", robot.VFBKi);
+            //telemetry.addData("Kd: ", robot.VFBKd);
             telemetry.update();
         }
     }
