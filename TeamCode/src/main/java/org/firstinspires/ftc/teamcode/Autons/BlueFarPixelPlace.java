@@ -1,16 +1,18 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.Autons;
 
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.acmerobotics.roadrunner.trajectory.Trajectory;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.teamcode.RobotHardware;
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
 import org.firstinspires.ftc.teamcode.drive.advanced.OpVariableStorage;
 
-@Autonomous(name = "BlueFarPark", group = "Iterative Opmode")
-public class BlueFarPark extends LinearOpMode {
+@Autonomous(name = "BlueFarPixelPlace", group = "Iterative Opmode")
+public class BlueFarPixelPlace extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
         RobotHardware robot = new RobotHardware(hardwareMap, telemetry);
 
@@ -38,19 +40,29 @@ public class BlueFarPark extends LinearOpMode {
                 .splineToConstantHeading(new Vector2d(-35, 50), Math.toRadians(0))
                 .splineToConstantHeading(new Vector2d(-35, 18), Math.toRadians(270))
                 .splineToSplineHeading(new Pose2d(-30, 9, Math.toRadians(180)), Math.toRadians(0))
-                .splineToConstantHeading(new Vector2d(50, 9), Math.toRadians(0))
+                .splineToConstantHeading(new Vector2d(40, 9), Math.toRadians(0))
                 .build();
         Trajectory GoToParkingSpotMiddle = drive.trajectoryBuilder(PushPixelToMiddle.end(), true)
                 .strafeTo(new Vector2d(-53, 45))
                 .splineToConstantHeading(new Vector2d(-55, 30), Math.toRadians(270))
                 .splineToSplineHeading(new Pose2d(-35, 9, Math.toRadians(180)), Math.toRadians(0))
-                .splineToConstantHeading(new Vector2d(50, 9), Math.toRadians(0))
+                .splineToConstantHeading(new Vector2d(40, 9), Math.toRadians(0))
                 .build();
         Trajectory GoToParkingSpotLeft = drive.trajectoryBuilder(PushPixelToLeft.end(), true)
                 .strafeTo(new Vector2d(-45, 40))
                 .splineToConstantHeading(new Vector2d(-45, 30), Math.toRadians(270))
                 .splineToSplineHeading(new Pose2d(-30, 9, Math.toRadians(180)), Math.toRadians(0))
-                .splineToConstantHeading(new Vector2d(50, 9), Math.toRadians(0))
+                .splineToConstantHeading(new Vector2d(40, 9), Math.toRadians(0))
+                .build();
+
+        Trajectory MoveToRightBoard = drive.trajectoryBuilder(GoToParkingSpotRight.end(), true)
+                .lineToConstantHeading(new Vector2d(47.5, 30))
+                .build();
+        Trajectory MoveToMiddleBoard = drive.trajectoryBuilder(GoToParkingSpotMiddle.end(), true)
+                .lineToConstantHeading(new Vector2d(47.5, 38.5))
+                .build();
+        Trajectory MoveToLeftBoard = drive.trajectoryBuilder(GoToParkingSpotLeft.end(), true)
+                .lineToConstantHeading(new Vector2d(47.5, 46.5))
                 .build();
 
         telemetry.addLine("Finished Building Trajectories");
@@ -63,6 +75,8 @@ public class BlueFarPark extends LinearOpMode {
         telemetry.update();
 
         waitForStart();
+
+        ElapsedTime AutonTimer = new ElapsedTime();
 
         //Close claw
         robot.Claw.setPosition(0 + robot.ClawOffset);
@@ -82,6 +96,10 @@ public class BlueFarPark extends LinearOpMode {
             //sleep(500);
             drive.followTrajectory(GoToParkingSpotLeft);
 
+            while (AutonTimer.seconds() <= 21) sleep(100);
+            drive.followTrajectory(MoveToLeftBoard);
+            robot.dropPixelOnBackboard();
+
 
         }
         else if (Math.round(objectLocation[0]) == 2) {
@@ -94,6 +112,10 @@ public class BlueFarPark extends LinearOpMode {
             //sleep(500);
             drive.followTrajectory(GoToParkingSpotRight);
 
+            while (AutonTimer.seconds() <= 21) sleep(100);
+            drive.followTrajectory(MoveToRightBoard);
+            robot.dropPixelOnBackboard();
+
 
         }
         else {
@@ -105,6 +127,10 @@ public class BlueFarPark extends LinearOpMode {
             sleep(500);
             //sleep(500);
             drive.followTrajectory(GoToParkingSpotMiddle);
+
+            while (AutonTimer.seconds() <= 21) sleep(100);
+            drive.followTrajectory(MoveToMiddleBoard);
+            robot.dropPixelOnBackboard();
 
 
         }
