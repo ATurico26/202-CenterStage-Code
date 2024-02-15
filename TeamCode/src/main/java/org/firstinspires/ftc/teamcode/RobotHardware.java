@@ -37,7 +37,7 @@ public class RobotHardware {
 
     // TurnControl PID variables
     double PosIntegralSum = 0;
-    double PosKp = 0.015;
+    double PosKp = 0.016;
     double PosKi = 0;
     double PosKd = 0;
     private double PosLastError = 0;
