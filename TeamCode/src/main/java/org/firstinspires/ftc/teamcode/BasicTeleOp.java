@@ -132,9 +132,6 @@ public class BasicTeleOp extends LinearOpMode {
                     VFBPower = robot.VFBPID(-780, robot.VFBLeft.getCurrentPosition());
 
                 } else {
-                    robot.VFBPIDtimer.reset(); // prevent PID from freaking out when not active
-
-
                     //Set power normally with limiters
                     if (gamepad2.right_stick_y < 0 && (robot.VFBLeft.getCurrentPosition() + VFBOffset) > -4000) VFBPower = (-1 * Math.abs(Math.pow(gamepad2.right_stick_y, 3)));
                     else if (gamepad2.right_stick_y >= 0 && (robot.VFBLeft.getCurrentPosition() + VFBOffset) < 0) VFBPower = (1 * Math.abs(Math.pow(gamepad2.right_stick_y, 3)));
@@ -144,10 +141,7 @@ public class BasicTeleOp extends LinearOpMode {
                 if (robot.Claw.getPosition() >= 0.1 + robot.ClawOffset && ((robot.VFBLeft.getCurrentPosition() + VFBOffset) <= -600 && (robot.VFBLeft.getCurrentPosition() + VFBOffset) >= -1800) && VFBPower < 0) VFBPower = 0;
                 else if (robot.Claw.getPosition() >= 0.1 + robot.ClawOffset && ((robot.VFBLeft.getCurrentPosition() + VFBOffset) <= -1800 && (robot.VFBLeft.getCurrentPosition() + VFBOffset) >= -3100) && VFBPower > 0) VFBPower = 0;
 
-
             } else {
-                robot.VFBPIDtimer.reset(); // prevent PID from freaking out when not active
-
                 // VFB power without limiters
                 if (gamepad2.right_stick_y < 0) VFBPower = (-1 * Math.abs(Math.pow(gamepad2.right_stick_y, 3)));
                 else if (gamepad2.right_stick_y > 0) VFBPower = (1 * Math.abs(Math.pow(gamepad2.right_stick_y, 3)));

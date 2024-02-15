@@ -56,13 +56,13 @@ public class RedFarPixelPlace extends LinearOpMode {
                 .build();
 
         Trajectory MoveToRightBoard = drive.trajectoryBuilder(GoToParkingSpotLeft.end(), true)
-                .lineToConstantHeading(new Vector2d(47.5, -46.5))
+                .lineToConstantHeading(new Vector2d(47.5, -47.5))
                 .build();
         Trajectory MoveToMiddleBoard = drive.trajectoryBuilder(GoToParkingSpotMiddle.end(), true)
-                .lineToConstantHeading(new Vector2d(47.5, -38.5))
+                .lineToConstantHeading(new Vector2d(47.5, -39.5))
                 .build();
         Trajectory MoveToLeftBoard = drive.trajectoryBuilder(GoToParkingSpotRight.end(), true)
-                .lineToConstantHeading(new Vector2d(47.5, -30))
+                .lineToConstantHeading(new Vector2d(47.5, -31))
                 .build();
 
         telemetry.addLine("Finished Building Trajectories");
