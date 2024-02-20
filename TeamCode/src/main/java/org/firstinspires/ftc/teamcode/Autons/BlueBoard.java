@@ -37,15 +37,15 @@ public class BlueBoard extends LinearOpMode {
 
         Trajectory MoveToRightBoard = drive.trajectoryBuilder(PushPixelToRight.end(), true)
                 .back(5)
-                .splineTo(new Vector2d(48, 41.5), Math.toRadians(0))
+                .splineTo(new Vector2d(48.5, 41.5), Math.toRadians(0))
                 .build();
         Trajectory MoveToMiddleBoard = drive.trajectoryBuilder(PushPixelToMiddle.end(), true)
                 .lineToConstantHeading(new Vector2d(18.4, 36))
-                .splineTo(new Vector2d(48, 36), Math.toRadians(0))
+                .splineTo(new Vector2d(48.5, 36), Math.toRadians(0))
                 .build();
         Trajectory MoveToLeftBoard = drive.trajectoryBuilder(PushPixelToLeft.end(), true)
                 .back(10)
-                .splineTo(new Vector2d(48, 28), Math.toRadians(0))
+                .splineTo(new Vector2d(48.5, 28), Math.toRadians(0))
                 .build();
 
         Trajectory GoToParkingSpotRight = drive.trajectoryBuilder(MoveToRightBoard.end())

@@ -38,7 +38,7 @@ public class RedBoard extends LinearOpMode {
 
         Trajectory MoveToRightBoard = drive.trajectoryBuilder(PushPixelToRight.end(), true)
                 .back(5)
-                .splineTo(new Vector2d(48, -41.5), Math.toRadians(0))
+                .splineTo(new Vector2d(48.5, -41.5), Math.toRadians(0))
                 .build();
         Trajectory MoveToMiddleBoard = drive.trajectoryBuilder(PushPixelToMiddle.end(), true)
                 .lineToConstantHeading(new Vector2d(18.4, -37))

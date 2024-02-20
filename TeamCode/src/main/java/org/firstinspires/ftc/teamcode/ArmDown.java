@@ -41,6 +41,8 @@ public class ArmDown extends LinearOpMode {
 
         waitForStart();
 
+        ElapsedTime timeElapsed = new ElapsedTime(ElapsedTime.Resolution.SECONDS);
+
         while (opModeIsActive() && !isStopRequested()) {
 
             // Virtual Four Bar
@@ -53,6 +55,12 @@ public class ArmDown extends LinearOpMode {
             robot.VFBRight.setPower(VFBPower);
             robot.VFBLeft.setPower(VFBPower);
 
+
+            // Intake
+            if (gamepad2.right_trigger > 0.05) robot.Intake.setPower(1 * gamepad2.right_trigger);
+            else if (gamepad2.left_trigger > 0.05) robot.Intake.setPower(-1 * gamepad2.left_trigger);
+            else if (gamepad1.right_trigger > 0.05) robot.Intake.setPower(1 * gamepad1.right_trigger);
+            else robot.Intake.setPower(0);
 
 
             // Drone launcher
@@ -68,8 +76,9 @@ public class ArmDown extends LinearOpMode {
             if(gamepad2.y) robot.Claw.setPosition(0 + ClawOffset);
             else if (gamepad2.x) robot.Claw.setPosition(0.2 + ClawOffset);
 
-
-
+            int ElapsedMinutes = (int) Math.floor((double) timeElapsed.seconds() / 60);
+            int ElapsedSeconds = (int) Math.floor(timeElapsed.seconds() - (60 * ElapsedMinutes));
+            telemetry.addData("Time Elapsed:",  ElapsedMinutes + ":" + ElapsedSeconds);
             telemetry.addData("FPS:", Math.round((1 / (mRuntime.time() - LastTime)) * 1000));
             telemetry.addData("MSPerFrame:", (mRuntime.time() - LastTime));
             LastTime = mRuntime.time();
